@@ -10,7 +10,7 @@ export default function WeekPage() {
   const groupedTasks = groupTasksByDay(tasksWithStatus);
 
   return (
-    <AppShell eyebrow="Weekly overview" title="This week's chore plan">
+    <AppShell eyebrow="Weekly overview" title="540A weekly plan">
       <div className="space-y-4">
         {Object.entries(groupedTasks).map(([day, tasks]) => (
           <section key={day} className="rounded-[2rem] bg-white p-5 shadow-sm">
@@ -21,7 +21,7 @@ export default function WeekPage() {
             {tasks.length > 0 ? (
               <div className="space-y-3">
                 {tasks.map((task) => (
-                  <article key={task.id} className="rounded-2xl bg-sage-50 p-4">
+                  <article key={task.id} className="rounded-2xl bg-cream-50 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="font-black text-slate-950">{task.title}</h3>
@@ -33,7 +33,7 @@ export default function WeekPage() {
                 ))}
               </div>
             ) : (
-              <p className="rounded-2xl bg-sage-50 p-4 text-sm font-medium text-slate-500">No scheduled cleaning tasks.</p>
+              <p className="rounded-2xl bg-cream-50 p-4 text-sm font-medium text-slate-500">No scheduled cleaning tasks.</p>
             )}
           </section>
         ))}

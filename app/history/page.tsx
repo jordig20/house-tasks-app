@@ -11,7 +11,7 @@ export default function HistoryPage() {
   const history = [...localHistory, ...recentHistory];
 
   return (
-    <AppShell eyebrow="Recently updated" title="Cleaning history">
+    <AppShell eyebrow="Recently updated" title="540A cleaning history">
       <div className="space-y-4">
         {history.length > 0 ? (
           history.map((task) => <TaskCard key={`${task.id}-${task.status}`} task={task} status={task.status} />)

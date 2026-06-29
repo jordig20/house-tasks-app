@@ -11,6 +11,21 @@ const config: Config = {
           500: "#6f9b72",
           700: "#466448",
         },
+        cream: {
+          50: "#fffaf0",
+          100: "#fff1d1",
+          200: "#f4dca9",
+        },
+        olive: {
+          100: "#eaf1db",
+          600: "#6f8f3d",
+          700: "#54712f",
+        },
+        roof: {
+          600: "#7b5235",
+          800: "#3f2717",
+        },
+        terracotta: "#b85c47",
         coral: "#ff8a7a",
       },
       boxShadow: {

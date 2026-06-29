@@ -22,13 +22,13 @@ export function TaskCard({
     <article className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-bold text-sage-700">{task.room}</p>
+          <p className="text-sm font-bold text-roof-800">{task.room}</p>
           <h3 className="mt-1 text-lg font-black leading-snug text-slate-950">{task.title}</h3>
         </div>
         <StatusBadge status={currentStatus} />
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-sage-50 p-3">
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-cream-50 p-3">
         <div className="flex items-center gap-3">
           {assignee ? <UserAvatar user={assignee} size="sm" /> : null}
           <div>
@@ -46,7 +46,7 @@ export function TaskCard({
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button
             onClick={() => onStatusChange(task.id, "done")}
-            className="rounded-full bg-sage-700 px-4 py-3 text-sm font-black text-white shadow-sm disabled:opacity-60"
+            className="rounded-full bg-roof-800 px-4 py-3 text-sm font-black text-white shadow-sm disabled:opacity-60"
             disabled={currentStatus === "done"}
           >
             Mark done

@@ -123,8 +123,8 @@ export const recentHistory: CleaningTask[] = [
 ];
 
 export const storageKeys = {
-  currentUser: "houseflow.currentUser",
-  taskStatuses: "houseflow.taskStatuses",
+  currentUser: "540aCleaning.currentUser",
+  taskStatuses: "540aCleaning.taskStatuses",
 } as const;
 
 export function getUserById(userId: string) {

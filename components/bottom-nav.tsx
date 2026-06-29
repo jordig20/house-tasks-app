@@ -22,7 +22,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-2xl px-2 py-2 text-center text-xs font-bold ${isActive ? "bg-sage-100 text-sage-700" : "text-slate-500"}`}
+              className={`rounded-2xl px-2 py-2 text-center text-xs font-bold ${isActive ? "bg-cream-100 text-roof-800" : "text-slate-500"}`}
             >
               <span className="block text-lg" aria-hidden="true">{item.icon}</span>
               {item.label}

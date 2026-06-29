@@ -1,8 +1,8 @@
 import type { HouseUser } from "@/lib/tasks";
 
 const avatarColors = {
-  admin: "bg-sage-700 text-white",
-  member: "bg-white text-sage-700 ring-1 ring-sage-200",
+  admin: "bg-roof-800 text-white",
+  member: "bg-white text-roof-800 ring-1 ring-cream-200",
 };
 
 export function UserAvatar({ user, size = "md" }: { user: Pick<HouseUser, "name" | "role">; size?: "sm" | "md" | "lg" }) {

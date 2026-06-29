@@ -1,19 +1,19 @@
-# HouseFlow
+# 540A Cleaning
 
-HouseFlow is a mobile-first MVP for tracking shared house cleaning tasks. It is built with the Next.js App Router, TypeScript, and Tailwind CSS, and is designed for a simple Vercel deployment.
+540A Cleaning is a mobile-first MVP for tracking shared house cleaning tasks. It is built with the Next.js App Router, TypeScript, and Tailwind CSS, and is designed for a simple Vercel deployment.
 
 ## Current MVP
 
 - Polished mobile-first landing page and app screens
-- Mock login with localStorage only
+- Mock login with exact PIN validation and localStorage-only session state
 - Mock house members:
   - Jordi, admin, PIN `1234`
   - Rafa, member, PIN `1111`
   - Alex, member, PIN `2222`
 - Routes for `/`, `/login`, `/today`, `/week`, `/history`, and `/admin/users`
-- Admin-only UI protection for `/admin/users`
+- Login-required app routes and admin-only UI protection for `/admin/users`
 - Today task checklist with `Mark done` and `Skip` actions
-- Task status persistence in localStorage
+- Task status persistence in localStorage under `540aCleaning.taskStatuses`
 - Weekly overview grouped by day
 - History view for completed and skipped tasks
 - Reusable UI components: `AppHeader`, `BottomNav`, `TaskCard`, `StatusBadge`, and `UserAvatar`
@@ -26,7 +26,7 @@ This starter keeps the architecture simple and free-tier friendly while leaving 
 - **Neon Postgres** or another hosted Postgres database for users and completion status
 - Real authentication for housemate accounts
 
-No Google Calendar integration, database integration, paid service, or Docker setup is included in this MVP.
+No Google Calendar integration, database integration, paid service, or Docker setup is included in this MVP. Login state is stored under `540aCleaning.currentUser` and never stores the mock PIN.
 
 ## Getting started
 
