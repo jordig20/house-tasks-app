@@ -52,3 +52,7 @@ npm run typecheck # Run TypeScript checks
 4. Deploy.
 
 No Dockerfile or paid services are required for this initial version.
+
+## Vercel troubleshooting
+
+If Vercel reports `No Output Directory named "public" found`, make sure the project uses the Next.js framework preset and does not override the output directory to `public`. This repository includes `vercel.json` to pin the framework to Next.js and the output directory to `.next`.
