@@ -1,23 +1,32 @@
 # HouseFlow
 
-A mobile-first shared house cleaning task tracker built with the Next.js App Router, TypeScript, and Tailwind CSS.
+HouseFlow is a mobile-first MVP for tracking shared house cleaning tasks. It is built with the Next.js App Router, TypeScript, and Tailwind CSS, and is designed for a simple Vercel deployment.
 
-## What is included
+## Current MVP
 
-- Landing page optimized for mobile screens
-- App routes for `/login`, `/today`, `/week`, `/history`, and `/admin/users`
-- Mock cleaning task and housemate data
-- Tailwind-powered responsive UI
-- Vercel-friendly project structure
-- No Docker and no paid service requirements
+- Polished mobile-first landing page and app screens
+- Mock login with localStorage only
+- Mock house members:
+  - Jordi, admin, PIN `1234`
+  - Rafa, member, PIN `1111`
+  - Alex, member, PIN `2222`
+- Routes for `/`, `/login`, `/today`, `/week`, `/history`, and `/admin/users`
+- Admin-only UI protection for `/admin/users`
+- Today task checklist with `Mark done` and `Skip` actions
+- Task status persistence in localStorage
+- Weekly overview grouped by day
+- History view for completed and skipped tasks
+- Reusable UI components: `AppHeader`, `BottomNav`, `TaskCard`, `StatusBadge`, and `UserAvatar`
 
 ## Future integration points
 
 This starter keeps the architecture simple and free-tier friendly while leaving room for:
 
-- **Google Calendar** as the source of scheduled cleaning tasks
+- **Google Calendar** as the future source of scheduled cleaning tasks
 - **Neon Postgres** or another hosted Postgres database for users and completion status
-- Authentication for real housemate accounts
+- Real authentication for housemate accounts
+
+No Google Calendar integration, database integration, paid service, or Docker setup is included in this MVP.
 
 ## Getting started
 
@@ -41,6 +50,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 npm run dev       # Start local development
 npm run build     # Create a production build
 npm run start     # Start the production server
+npm run lint      # Run ESLint
 npm run typecheck # Run TypeScript checks
 ```
 
@@ -48,8 +58,9 @@ npm run typecheck # Run TypeScript checks
 
 1. Push this repository to GitHub.
 2. Import the repository in Vercel.
-3. Keep the default Next.js settings.
-4. Deploy.
+3. Use the Next.js framework preset.
+4. Keep the build command as `npm run build`.
+5. Deploy.
 
 No Dockerfile or paid services are required for this initial version.
 

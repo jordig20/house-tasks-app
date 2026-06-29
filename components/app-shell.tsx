@@ -1,32 +1,59 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState, type ReactNode } from "react";
+import { AppHeader } from "@/components/app-header";
+import { BottomNav } from "@/components/bottom-nav";
+import type { HouseUser } from "@/lib/tasks";
+import { storageKeys } from "@/lib/tasks";
 
-const navItems = [
-  { href: "/today", label: "Today" },
-  { href: "/week", label: "Week" },
-  { href: "/history", label: "History" },
-  { href: "/admin/users", label: "Users" },
-];
+export function AppShell({
+  children,
+  title,
+  eyebrow,
+  requireAdmin = false,
+}: {
+  children: ReactNode;
+  title: string;
+  eyebrow: string;
+  requireAdmin?: boolean;
+}) {
+  const [user, setUser] = useState<HouseUser | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
-export function AppShell({ children, title, eyebrow }: { children: React.ReactNode; title: string; eyebrow: string }) {
+  useEffect(() => {
+    const storedUser = window.localStorage.getItem(storageKeys.currentUser);
+    setUser(storedUser ? JSON.parse(storedUser) : null);
+    setIsReady(true);
+  }, []);
+
+  const isDenied = isReady && requireAdmin && user?.role !== "admin";
+
   return (
-    <main className="min-h-screen bg-sage-50 px-4 py-5 text-slate-950 sm:px-6">
+    <main className="min-h-screen bg-sage-50 px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
+      <AppHeader user={user} />
       <div className="mx-auto max-w-3xl">
-        <nav className="mb-6 flex items-center justify-between gap-3 rounded-full bg-white/90 p-2 shadow-sm">
-          <Link href="/" className="rounded-full bg-sage-700 px-4 py-2 text-sm font-bold text-white">HouseFlow</Link>
-          <div className="flex overflow-x-auto text-sm font-medium text-slate-600">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full px-3 py-2 hover:bg-sage-100 hover:text-sage-700">
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
         <header className="mb-6">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-sage-700">{eyebrow}</p>
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-sage-700">{eyebrow}</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
         </header>
-        {children}
+
+        {!isReady ? (
+          <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">Loading house...</div>
+        ) : isDenied ? (
+          <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
+            <p className="text-4xl" aria-hidden="true">🔒</p>
+            <h2 className="mt-3 text-2xl font-black">Admin access only</h2>
+            <p className="mt-2 text-slate-600">Log in as Jordi to manage mock house members.</p>
+            <Link href="/today" className="mt-5 inline-flex rounded-full bg-sage-700 px-5 py-3 font-bold text-white">
+              Back to tasks
+            </Link>
+          </section>
+        ) : (
+          children
+        )}
       </div>
+      <BottomNav />
     </main>
   );
 }
