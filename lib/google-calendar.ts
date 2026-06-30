@@ -1,7 +1,7 @@
 import "server-only";
 
 import { google, type calendar_v3 } from "googleapis";
-import { mockTasks, parseCalendarTaskTitle, type CleaningTask } from "@/lib/tasks";
+import { getTaskDateRangeLabel, isMultiDayTask, mockTasks, parseCalendarTaskTitle, taskOverlapsRange, type CleaningTask } from "@/lib/tasks";
 
 export type ConfiguredCalendar = {
   calendarName: string;
@@ -120,7 +120,7 @@ function normalizeCalendarEvent(event: calendar_v3.Schema$Event, calendar: Confi
   const startDate = new Date(isAllDay ? `${eventStart}T00:00:00` : eventStart);
   const date = getDateOnly(eventStart);
 
-  return {
+  const task: CleaningTask = {
     id: `${calendar.calendarName}:${googleEventId}:${eventStart}`,
     googleEventId,
     calendarName: calendar.calendarName,
@@ -139,6 +139,13 @@ function normalizeCalendarEvent(event: calendar_v3.Schema$Event, calendar: Confi
     status: "pending",
     durationMinutes: 0,
   };
+
+  if (isMultiDayTask(task)) {
+    task.dueLabel = isAllDay ? "All week" : `${formatTime(eventStart, isAllDay)} start`;
+    task.dateLabel = getTaskDateRangeLabel(task);
+  }
+
+  return task;
 }
 
 export async function getCalendarTasks(start: Date, end: Date): Promise<CalendarTaskResult> {
@@ -147,10 +154,7 @@ export async function getCalendarTasks(start: Date, end: Date): Promise<Calendar
 
   if (configuredCalendars.length === 0 || !calendarClient) {
     return {
-      tasks: mockTasks.filter((task) => {
-        const taskStart = new Date(task.start);
-        return taskStart >= start && taskStart < end;
-      }),
+      tasks: mockTasks.filter((task) => taskOverlapsRange(task, start, end)),
       warnings: ["Google Calendar is not configured yet, so mock calendar tasks are shown."],
       isMock: true,
     };
