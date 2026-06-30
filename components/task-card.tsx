@@ -19,7 +19,12 @@ export function TaskCard({
     <article className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-bold text-roof-800">Google Calendar task</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-bold text-roof-800">Google Calendar task</p>
+            <span className="rounded-full bg-cream-100 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+              {task.calendarName}
+            </span>
+          </div>
           <h3 className="mt-1 text-lg font-black leading-snug text-slate-950">{task.title}</h3>
         </div>
         <StatusBadge status={currentStatus} />

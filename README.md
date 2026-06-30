@@ -17,16 +17,34 @@
 - Weekly overview grouped by day
 - History view for completed and skipped tasks
 - Reusable UI components: `AppHeader`, `BottomNav`, `TaskCard`, `StatusBadge`, and `UserAvatar`
+- Read-only Google Calendar loading from one or more calendars when server environment variables are configured
 
 ## Future integration points
 
 This starter keeps the architecture simple and free-tier friendly while leaving room for:
 
-- **Google Calendar** as the future source of scheduled cleaning tasks
 - **Neon Postgres** or another hosted Postgres database for users and completion status
 - Real authentication for housemate accounts
 
-No Google Calendar integration, database integration, paid service, or Docker setup is included in this MVP. Login state is stored under `540aCleaning.currentUser` and never stores the mock PIN.
+No database integration, paid service, or Docker setup is included in this MVP. Login state is stored under `540aCleaning.currentUser` and never stores the mock PIN. Task completion status remains local to the browser.
+
+## Google Calendar
+
+Google Calendar is read-only. The app never creates, edits, or deletes calendar events. If the Google Calendar environment variables are missing, `/today` and `/week` fall back to mock calendar-style task data.
+
+Create a Google service account, then share each Google Calendar with the service account email using read access. The same service account can be shared with every calendar.
+
+Set these server-side environment variables locally and in Vercel:
+
+```bash
+GOOGLE_CLIENT_EMAIL=service-account-name@project-id.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+GOOGLE_CALENDARS=main:abc123@group.calendar.google.com,bathrooms:def456@group.calendar.google.com
+```
+
+`GOOGLE_CALENDARS` is a comma-separated list of `name:calendar_id` entries. The `name` is shown subtly in the UI so housemates can see which calendar produced each task.
+
+Do not prefix these values with `NEXT_PUBLIC_`. They are read only on the server.
 
 ## Getting started
 
