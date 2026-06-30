@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import type { LoggedInUser } from "@/lib/auth";
@@ -18,13 +18,8 @@ export function AppShell({
   eyebrow: string;
   requireAdmin?: boolean;
 }) {
-  const [user, setUser] = useState<LoggedInUser | null>(null);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    setUser(getLoggedInUser());
-    setIsReady(true);
-  }, []);
+  const [user] = useState<LoggedInUser | null>(() => getLoggedInUser());
+  const isReady = true;
 
   const needsLogin = isReady && !user;
   const isDenied = isReady && !!user && requireAdmin && user.role !== "admin";
