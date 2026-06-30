@@ -11,10 +11,11 @@ export type TaskStatus = "pending" | "done" | "skipped";
 
 export type CleaningTask = {
   id: string;
+  sourceTitle: string;
   title: string;
-  room: string;
-  assigneeId: string;
+  assignedTo: string[];
   dueLabel: string;
+  dateLabel: string;
   day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
   status: TaskStatus;
   durationMinutes: number;
@@ -26,114 +27,138 @@ export const mockUsers: HouseUser[] = [
   { id: "alex", name: "Alex", role: "member", pin: "2222" },
 ];
 
+export function parseCalendarTaskTitle(eventTitle: string) {
+  const [peoplePart, ...taskParts] = eventTitle.split(" - ");
+
+  if (taskParts.length === 0) {
+    return {
+      assignedTo: [],
+      taskTitle: eventTitle.trim(),
+    };
+  }
+
+  return {
+    assignedTo: peoplePart.split("&").map((person) => person.trim()).filter(Boolean),
+    taskTitle: taskParts.join(" - ").trim(),
+  };
+}
+
+function createMockCalendarTask({
+  id,
+  sourceTitle,
+  dueLabel,
+  dateLabel,
+  day,
+  durationMinutes,
+  status = "pending",
+}: {
+  id: string;
+  sourceTitle: string;
+  dueLabel: string;
+  dateLabel: string;
+  day: CleaningTask["day"];
+  durationMinutes: number;
+  status?: TaskStatus;
+}): CleaningTask {
+  const parsedTitle = parseCalendarTaskTitle(sourceTitle);
+
+  return {
+    id,
+    sourceTitle,
+    title: parsedTitle.taskTitle,
+    assignedTo: parsedTitle.assignedTo,
+    dueLabel,
+    dateLabel,
+    day,
+    status,
+    durationMinutes,
+  };
+}
+
 export const mockTasks: CleaningTask[] = [
-  {
-    id: "mon-kitchen-counters",
-    title: "Wipe counters and stovetop",
-    room: "Kitchen",
-    assigneeId: "jordi",
+  createMockCalendarTask({
+    id: "mon-nico-trash-recycling",
+    sourceTitle: "Nico - Trash & Recycling",
     dueLabel: "Today, 8:00 PM",
+    dateLabel: "Monday, Jun 29",
     day: "Monday",
-    status: "pending",
-    durationMinutes: 15,
-  },
-  {
-    id: "mon-trash-recycling",
-    title: "Take out trash and recycling",
-    room: "Shared areas",
-    assigneeId: "rafa",
-    dueLabel: "Today, 9:00 PM",
-    day: "Monday",
-    status: "pending",
     durationMinutes: 10,
-  },
-  {
-    id: "mon-living-room",
-    title: "Vacuum the living room rug",
-    room: "Living room",
-    assigneeId: "alex",
-    dueLabel: "Today, 9:30 PM",
+  }),
+  createMockCalendarTask({
+    id: "mon-rafaela-jordi-bathroom",
+    sourceTitle: "Rafaela & Jordi - Bathroom",
+    dueLabel: "Today, 8:30 PM",
+    dateLabel: "Monday, Jun 29",
     day: "Monday",
-    status: "pending",
-    durationMinutes: 20,
-  },
-  {
-    id: "tue-bathroom-sink",
-    title: "Clean bathroom sink and mirror",
-    room: "Bathroom",
-    assigneeId: "alex",
-    dueLabel: "Tuesday, 7:00 PM",
-    day: "Tuesday",
-    status: "pending",
-    durationMinutes: 20,
-  },
-  {
-    id: "wed-fridge-check",
-    title: "Clear expired food from fridge",
-    room: "Kitchen",
-    assigneeId: "rafa",
-    dueLabel: "Wednesday, 8:00 PM",
-    day: "Wednesday",
-    status: "pending",
-    durationMinutes: 15,
-  },
-  {
-    id: "fri-mop-floor",
-    title: "Mop kitchen floor",
-    room: "Kitchen",
-    assigneeId: "jordi",
-    dueLabel: "Friday, 6:30 PM",
-    day: "Friday",
-    status: "pending",
     durationMinutes: 25,
-  },
-  {
-    id: "sun-reset",
-    title: "Reset shared supplies shelf",
-    room: "Hall closet",
-    assigneeId: "rafa",
+  }),
+  createMockCalendarTask({
+    id: "mon-michelle-zora-bathroom",
+    sourceTitle: "Michelle & Zora - Bathroom",
+    dueLabel: "Today, 9:00 PM",
+    dateLabel: "Monday, Jun 29",
+    day: "Monday",
+    durationMinutes: 25,
+  }),
+  createMockCalendarTask({
+    id: "tue-ellie-tilder-bathroom-cl",
+    sourceTitle: "Ellie & Tilder - Bathroom Cl",
+    dueLabel: "Tuesday, 7:00 PM",
+    dateLabel: "Tuesday, Jun 30",
+    day: "Tuesday",
+    durationMinutes: 20,
+  }),
+  createMockCalendarTask({
+    id: "wed-nico-bathroom-downstair",
+    sourceTitle: "Nico - Bathroom Downstair",
+    dueLabel: "Wednesday, 8:00 PM",
+    dateLabel: "Wednesday, Jul 1",
+    day: "Wednesday",
+    durationMinutes: 20,
+  }),
+  createMockCalendarTask({
+    id: "fri-jordi-kitchen",
+    sourceTitle: "Jordi - Kitchen",
+    dueLabel: "Friday, 6:30 PM",
+    dateLabel: "Friday, Jul 3",
+    day: "Friday",
+    durationMinutes: 25,
+  }),
+  createMockCalendarTask({
+    id: "sun-rafaela-supplies-reset",
+    sourceTitle: "Rafaela - Supplies Reset",
     dueLabel: "Sunday, 11:00 AM",
+    dateLabel: "Sunday, Jul 5",
     day: "Sunday",
-    status: "pending",
     durationMinutes: 15,
-  },
+  }),
 ];
 
 export const recentHistory: CleaningTask[] = [
-  {
+  createMockCalendarTask({
     id: "history-bathroom-floor",
-    title: "Sweep bathroom floor",
-    room: "Bathroom",
-    assigneeId: "alex",
+    sourceTitle: "Alex - Bathroom Floor",
     dueLabel: "Yesterday, 7:15 PM",
+    dateLabel: "Sunday, Jun 28",
     day: "Sunday",
     status: "done",
     durationMinutes: 12,
-  },
-  {
+  }),
+  createMockCalendarTask({
     id: "history-dishes-reset",
-    title: "Empty dishwasher and reset sink",
-    room: "Kitchen",
-    assigneeId: "jordi",
+    sourceTitle: "Jordi - Dishwasher Reset",
     dueLabel: "Last Saturday, 10:00 AM",
+    dateLabel: "Saturday, Jun 27",
     day: "Saturday",
     status: "skipped",
     durationMinutes: 10,
-  },
+  }),
 ];
 
 export const storageKeys = {
   currentUser: "540aCleaning.currentUser",
   taskStatuses: "540aCleaning.taskStatuses",
 } as const;
-
-export function getUserById(userId: string) {
-  return mockUsers.find((user) => user.id === userId);
-}
-
-export function getAssigneeName(userId: string) {
-  return getUserById(userId)?.name ?? "Unassigned";
-}
 
 export function getTodayTasks() {
   return mockTasks.filter((task) => task.day === "Monday");
