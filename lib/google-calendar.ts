@@ -131,7 +131,7 @@ function normalizeCalendarEvent(
   const startDate = new Date(isAllDay ? `${eventStart}T00:00:00` : eventStart);
   const date = getDateOnly(eventStart);
 
-  return {
+  const task: CleaningTask = {
     id: `${calendar.calendarName}:${googleEventId}:${eventStart}`,
     googleEventId,
     calendarName: calendar.calendarName,
@@ -150,6 +150,13 @@ function normalizeCalendarEvent(
     status: "pending",
     durationMinutes: 0,
   };
+
+  if (isMultiDayTask(task)) {
+    task.dueLabel = isAllDay ? "All week" : `${formatTime(eventStart, isAllDay)} start`;
+    task.dateLabel = getTaskDateRangeLabel(task);
+  }
+
+  return task;
 }
 
 export async function getCalendarTasks(
