@@ -14,7 +14,7 @@ function toLoggedInUser(user: HouseUser): LoggedInUser {
   };
 }
 
-export function validateMockLogin(userId: string, pin: string) {
+export function validateLocalLogin(userId: string, pin: string) {
   const user = getHouseUsers().find((candidate) => candidate.id === userId);
 
   if (!user || user.pin !== pin) {

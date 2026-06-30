@@ -5,11 +5,8 @@
 ## Current MVP
 
 - Polished mobile-first landing page and app screens
-- Mock login with exact PIN validation and localStorage-only session state
-- Mock house members:
-  - Jordi, admin, PIN `1234`
-  - Rafa, member, PIN `1111`
-  - Alex, member, PIN `2222`
+- Local PIN login with exact PIN validation and localStorage-only session state
+- Built-in Admin account, PIN `1234`; member users are derived from assigned Google Calendar tasks
 - Routes for `/`, `/login`, `/today`, `/week`, `/history`, and `/admin/users`
 - Login-required app routes and admin-only UI protection for `/admin/users`
 - Today task checklist with `Mark done` and `Skip` actions
@@ -26,11 +23,11 @@ This starter keeps the architecture simple and free-tier friendly while leaving 
 - **Neon Postgres** or another hosted Postgres database for users and completion status
 - Real authentication for housemate accounts
 
-No database integration, paid service, or Docker setup is included in this MVP. Login state is stored under `540aCleaning.currentUser` and never stores the mock PIN. Task completion status remains local to the browser.
+No database integration, paid service, or Docker setup is included in this MVP. Login state is stored under `540aCleaning.currentUser` and never stores the submitted PIN. Task completion status remains local to the browser.
 
 ## Google Calendar
 
-Google Calendar is read-only. The app never creates, edits, or deletes calendar events. If the Google Calendar environment variables are missing, `/today` and `/week` fall back to mock calendar-style task data.
+Google Calendar is read-only. The app never creates, edits, or deletes calendar events. If the Google Calendar environment variables are missing, `/today` and `/week` show no tasks and display a configuration warning.
 
 Create a Google service account, then share each Google Calendar with the service account email using read access. The same service account can be shared with every calendar.
 
