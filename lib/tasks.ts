@@ -204,6 +204,7 @@ export const recentHistory: CleaningTask[] = [
 export const storageKeys = {
   currentUser: "540aCleaning.currentUser",
   taskStatuses: "540aCleaning.taskStatuses",
+  users: "540aCleaning.users",
 } as const;
 
 export function getTodayTasks() {
