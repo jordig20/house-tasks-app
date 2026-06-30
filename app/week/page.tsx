@@ -21,7 +21,14 @@ export default async function WeekPage() {
   const calendarTasks = await getCalendarTasks(start, end);
 
   return (
-    <AppShell eyebrow={calendarTasks.isMock ? "Google Calendar preview" : "Google Calendar"} title="540A weekly plan">
+    <AppShell
+      eyebrow={
+        calendarTasks.isConfiguredFallback
+          ? "Google Calendar setup needed"
+          : "Google Calendar"
+      }
+      title="540A weekly plan"
+    >
       <CalendarWarnings warnings={calendarTasks.warnings} />
       <WeekTasks tasks={calendarTasks.tasks} />
     </AppShell>

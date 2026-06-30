@@ -2,7 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { getLoggedInUser, saveLoggedInUser, validateMockLogin } from "@/lib/auth";
+import {
+  getLoggedInUser,
+  saveLoggedInUser,
+  validateLocalLogin,
+} from "@/lib/auth";
 import { storageKeys } from "@/lib/tasks";
 import { getHouseUsers } from "@/lib/users";
 import { BrandLogo } from "@/components/brand-logo";
@@ -14,11 +18,13 @@ export default function LoginPage() {
   const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const [storedUserName, setStoredUserName] = useState(() => getLoggedInUser()?.name ?? null);
+  const [storedUserName, setStoredUserName] = useState(
+    () => getLoggedInUser()?.name ?? null,
+  );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const loggedInUser = validateMockLogin(selectedUserId, pin);
+    const loggedInUser = validateLocalLogin(selectedUserId, pin);
 
     if (!loggedInUser) {
       setError("That PIN does not match the selected user.");
@@ -35,10 +41,19 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-cream-50 px-4 py-8">
       <section className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-soft">
         <BrandLogo />
-        <h1 className="mt-8 text-3xl font-black">Choose your housemate</h1>
-        <p className="mt-2 text-slate-600">This is a local PIN login for the house roster. The selected user is saved in <code className="rounded bg-cream-50 px-1 font-bold text-roof-800">{storageKeys.currentUser}</code>.</p>
+        <h1 className="mt-8 text-3xl font-black">Choose your account</h1>
+        <p className="mt-2 text-slate-600">
+          This is a local PIN login for the calendar-based house roster. The
+          selected user is saved in{" "}
+          <code className="rounded bg-cream-50 px-1 font-bold text-roof-800">
+            {storageKeys.currentUser}
+          </code>
+          .
+        </p>
         {storedUserName ? (
-          <p className="mt-3 rounded-2xl bg-cream-50 p-3 text-sm font-bold text-roof-800">Current local session: {storedUserName}</p>
+          <p className="mt-3 rounded-2xl bg-cream-50 p-3 text-sm font-bold text-roof-800">
+            Current local session: {storedUserName}
+          </p>
         ) : null}
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
@@ -59,14 +74,18 @@ export default function LoginPage() {
                 <UserAvatar user={user} />
                 <span>
                   <span className="block font-black">{user.name}</span>
-                  <span className="text-sm capitalize text-slate-500">{user.role} · PIN required</span>
+                  <span className="text-sm capitalize text-slate-500">
+                    {user.role} · PIN required
+                  </span>
                 </span>
               </label>
             ))}
           </div>
 
           <div>
-            <label htmlFor="pin" className="text-sm font-bold text-slate-700">PIN</label>
+            <label htmlFor="pin" className="text-sm font-bold text-slate-700">
+              PIN
+            </label>
             <input
               id="pin"
               className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg tracking-[0.4em] outline-none focus:border-roof-600"
@@ -80,10 +99,16 @@ export default function LoginPage() {
                 setError("");
               }}
             />
-            {error ? <p className="mt-2 text-sm font-bold text-red-600">{error}</p> : null}
+            {error ? (
+              <p className="mt-2 text-sm font-bold text-red-600">{error}</p>
+            ) : null}
           </div>
 
-          <button className="w-full rounded-full bg-roof-800 px-5 py-3 text-center font-bold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit" disabled={pin.length !== 4}>
+          <button
+            className="w-full rounded-full bg-roof-800 px-5 py-3 text-center font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            type="submit"
+            disabled={pin.length !== 4}
+          >
             Continue
           </button>
         </form>

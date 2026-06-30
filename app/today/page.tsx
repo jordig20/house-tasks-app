@@ -21,7 +21,14 @@ export default async function TodayPage() {
   const calendarTasks = await getCalendarTasks(start, end);
 
   return (
-    <AppShell eyebrow={calendarTasks.isMock ? "Google Calendar preview" : "Google Calendar"} title="Today at 540A">
+    <AppShell
+      eyebrow={
+        calendarTasks.isConfiguredFallback
+          ? "Google Calendar setup needed"
+          : "Google Calendar"
+      }
+      title="Today at 540A"
+    >
       <CalendarWarnings warnings={calendarTasks.warnings} />
       <TodayTasks tasks={calendarTasks.tasks} />
     </AppShell>
