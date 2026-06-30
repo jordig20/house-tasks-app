@@ -1,29 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { getLoggedInUser, saveLoggedInUser, validateMockLogin } from "@/lib/auth";
-import { mockUsers, storageKeys } from "@/lib/tasks";
+import { storageKeys } from "@/lib/tasks";
+import { getHouseUsers } from "@/lib/users";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [selectedUserId, setSelectedUserId] = useState(mockUsers[0].id);
+  const [users] = useState(() => getHouseUsers());
+  const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const [storedUserName, setStoredUserName] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStoredUserName(getLoggedInUser()?.name ?? null);
-  }, []);
+  const [storedUserName, setStoredUserName] = useState(() => getLoggedInUser()?.name ?? null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const loggedInUser = validateMockLogin(selectedUserId, pin);
 
     if (!loggedInUser) {
-      setError("That PIN does not match the selected mock user.");
+      setError("That PIN does not match the selected user.");
       setPin("");
       return;
     }
@@ -38,14 +36,14 @@ export default function LoginPage() {
       <section className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-soft">
         <BrandLogo />
         <h1 className="mt-8 text-3xl font-black">Choose your housemate</h1>
-        <p className="mt-2 text-slate-600">This is a local mock login only. The selected user is saved in <code className="rounded bg-cream-50 px-1 font-bold text-roof-800">{storageKeys.currentUser}</code>.</p>
+        <p className="mt-2 text-slate-600">This is a local PIN login for the house roster. The selected user is saved in <code className="rounded bg-cream-50 px-1 font-bold text-roof-800">{storageKeys.currentUser}</code>.</p>
         {storedUserName ? (
           <p className="mt-3 rounded-2xl bg-cream-50 p-3 text-sm font-bold text-roof-800">Current local session: {storedUserName}</p>
         ) : null}
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
           <div className="grid gap-3">
-            {mockUsers.map((user) => (
+            {users.map((user) => (
               <label
                 key={user.id}
                 className={`flex cursor-pointer items-center gap-3 rounded-3xl border p-4 transition ${selectedUserId === user.id ? "border-roof-600 bg-cream-100" : "border-slate-200 bg-white"}`}
@@ -61,7 +59,7 @@ export default function LoginPage() {
                 <UserAvatar user={user} />
                 <span>
                   <span className="block font-black">{user.name}</span>
-                  <span className="text-sm capitalize text-slate-500">{user.role} · mock PIN required</span>
+                  <span className="text-sm capitalize text-slate-500">{user.role} · PIN required</span>
                 </span>
               </label>
             ))}

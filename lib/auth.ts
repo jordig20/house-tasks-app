@@ -1,7 +1,8 @@
 "use client";
 
 import type { HouseUser } from "@/lib/tasks";
-import { mockUsers, storageKeys } from "@/lib/tasks";
+import { storageKeys } from "@/lib/tasks";
+import { getHouseUsers } from "@/lib/users";
 
 export type LoggedInUser = Omit<HouseUser, "pin">;
 
@@ -14,7 +15,7 @@ function toLoggedInUser(user: HouseUser): LoggedInUser {
 }
 
 export function validateMockLogin(userId: string, pin: string) {
-  const user = mockUsers.find((candidate) => candidate.id === userId);
+  const user = getHouseUsers().find((candidate) => candidate.id === userId);
 
   if (!user || user.pin !== pin) {
     return null;
@@ -28,6 +29,10 @@ export function saveLoggedInUser(user: LoggedInUser) {
 }
 
 export function getLoggedInUser() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
   const storedUser = window.localStorage.getItem(storageKeys.currentUser);
 
   if (!storedUser) {

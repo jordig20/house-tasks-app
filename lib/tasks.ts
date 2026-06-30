@@ -105,14 +105,15 @@ function createMockCalendarTask({
 
 export const mockTasks: CleaningTask[] = [
   createMockCalendarTask({
-    id: "mon-nico-trash-recycling",
+    id: "week-nico-trash-recycling",
     sourceTitle: "Nico - Trash & Recycling",
-    start: "2026-06-29T20:00:00.000-06:00",
-    end: "2026-06-29T20:30:00.000-06:00",
-    dueLabel: "Today, 8:00 PM",
-    dateLabel: "Monday, Jun 29",
+    start: "2026-06-29",
+    end: "2026-07-06",
+    dueLabel: "All week",
+    dateLabel: "Monday, Jun 29 – Sunday, Jul 5",
     day: "Monday",
-    durationMinutes: 10,
+    durationMinutes: 0,
+    isAllDay: true,
   }),
   createMockCalendarTask({
     id: "mon-rafaela-jordi-bathroom",
@@ -204,10 +205,64 @@ export const recentHistory: CleaningTask[] = [
 export const storageKeys = {
   currentUser: "540aCleaning.currentUser",
   taskStatuses: "540aCleaning.taskStatuses",
+  users: "540aCleaning.users",
 } as const;
 
+function parseTaskBoundary(value: string, isAllDay: boolean) {
+  return new Date(isAllDay && !value.includes("T") ? `${value}T00:00:00` : value);
+}
+
+function formatTaskBoundary(value: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  }).format(value);
+}
+
+export function getTaskStartDate(task: Pick<CleaningTask, "start" | "isAllDay">) {
+  return parseTaskBoundary(task.start, task.isAllDay);
+}
+
+export function getTaskEndDate(task: Pick<CleaningTask, "end" | "isAllDay">) {
+  return parseTaskBoundary(task.end, task.isAllDay);
+}
+
+export function getDisplayEndDate(task: Pick<CleaningTask, "end" | "isAllDay">) {
+  const endDate = getTaskEndDate(task);
+
+  if (task.isAllDay) {
+    endDate.setDate(endDate.getDate() - 1);
+  }
+
+  return endDate;
+}
+
+export function isMultiDayTask(task: Pick<CleaningTask, "start" | "end" | "isAllDay">) {
+  return getDisplayEndDate(task).toDateString() !== getTaskStartDate(task).toDateString();
+}
+
+export function getTaskDateRangeLabel(task: Pick<CleaningTask, "start" | "end" | "isAllDay" | "dateLabel">) {
+  if (!isMultiDayTask(task)) {
+    return task.dateLabel;
+  }
+
+  return `${formatTaskBoundary(getTaskStartDate(task))} – ${formatTaskBoundary(getDisplayEndDate(task))}`;
+}
+
+export function taskOverlapsRange(task: Pick<CleaningTask, "start" | "end" | "isAllDay">, start: Date, end: Date) {
+  return getTaskStartDate(task) < end && getTaskEndDate(task) > start;
+}
+
 export function getTodayTasks() {
-  return mockTasks.filter((task) => task.day === "Monday");
+  const { start, end } = (() => {
+    const todayStart = new Date("2026-06-29T00:00:00.000-06:00");
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+    return { start: todayStart, end: todayEnd };
+  })();
+
+  return mockTasks.filter((task) => taskOverlapsRange(task, start, end));
 }
 
 export function groupTasksByDay(tasks: CleaningTask[]) {
