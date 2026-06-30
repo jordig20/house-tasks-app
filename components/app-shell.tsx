@@ -29,27 +29,48 @@ export function AppShell({
       <AppHeader user={user} />
       <div className="mx-auto max-w-3xl">
         <header className="mb-6">
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">{eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">
+            {eyebrow}
+          </p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+            {title}
+          </h1>
         </header>
 
         {!isReady ? (
-          <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">Loading house...</div>
+          <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            Loading house...
+          </div>
         ) : needsLogin ? (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
-            <p className="text-4xl" aria-hidden="true">👋</p>
+            <p className="text-4xl" aria-hidden="true">
+              👋
+            </p>
             <h2 className="mt-3 text-2xl font-black">Log in to continue</h2>
-            <p className="mt-2 text-slate-600">Choose Jordi, Rafa, or Alex and enter the matching PIN to create a local mock session.</p>
-            <Link href="/login" className="mt-5 inline-flex rounded-full bg-roof-800 px-5 py-3 font-bold text-white">
+            <p className="mt-2 text-slate-600">
+              Choose Admin or a calendar assignee and enter the matching PIN to
+              create a local session.
+            </p>
+            <Link
+              href="/login"
+              className="mt-5 inline-flex rounded-full bg-roof-800 px-5 py-3 font-bold text-white"
+            >
               Go to login
             </Link>
           </section>
         ) : isDenied ? (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
-            <p className="text-4xl" aria-hidden="true">🔒</p>
+            <p className="text-4xl" aria-hidden="true">
+              🔒
+            </p>
             <h2 className="mt-3 text-2xl font-black">Admin access only</h2>
-            <p className="mt-2 text-slate-600">Log in as Jordi to manage mock house members.</p>
-            <Link href="/today" className="mt-5 inline-flex rounded-full bg-roof-800 px-5 py-3 font-bold text-white">
+            <p className="mt-2 text-slate-600">
+              Log in as Admin to manage house members from calendar tasks.
+            </p>
+            <Link
+              href="/today"
+              className="mt-5 inline-flex rounded-full bg-roof-800 px-5 py-3 font-bold text-white"
+            >
               Back to tasks
             </Link>
           </section>

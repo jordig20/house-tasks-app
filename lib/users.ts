@@ -1,4 +1,9 @@
-import { mockTasks, mockUsers, storageKeys, type CleaningTask, type HouseUser } from "@/lib/tasks";
+import {
+  adminUser,
+  storageKeys,
+  type CleaningTask,
+  type HouseUser,
+} from "@/lib/tasks";
 
 export const defaultMemberPin = "0000";
 
@@ -12,7 +17,9 @@ function slugifyUserName(name: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export function getAssigneeNamesFromTasks(tasks: Pick<CleaningTask, "assignedTo">[]) {
+export function getAssigneeNamesFromTasks(
+  tasks: Pick<CleaningTask, "assignedTo">[],
+) {
   const names = new Map<string, string>();
 
   tasks.forEach((task) => {
@@ -25,7 +32,9 @@ export function getAssigneeNamesFromTasks(tasks: Pick<CleaningTask, "assignedTo"
     });
   });
 
-  return Array.from(names.values()).sort((firstName, secondName) => firstName.localeCompare(secondName));
+  return Array.from(names.values()).sort((firstName, secondName) =>
+    firstName.localeCompare(secondName),
+  );
 }
 
 export function createUserFromName(name: string): HouseUser {
@@ -37,8 +46,13 @@ export function createUserFromName(name: string): HouseUser {
   };
 }
 
-export function mergeUsersWithTaskAssignees(existingUsers: HouseUser[], tasks: Pick<CleaningTask, "assignedTo">[]) {
-  const usersByName = new Map(existingUsers.map((user) => [user.name.toLowerCase(), user]));
+export function mergeUsersWithTaskAssignees(
+  existingUsers: HouseUser[],
+  tasks: Pick<CleaningTask, "assignedTo">[],
+) {
+  const usersByName = new Map(
+    existingUsers.map((user) => [user.name.toLowerCase(), user]),
+  );
   const usersById = new Map(existingUsers.map((user) => [user.id, user]));
   const mergedUsers = [...existingUsers];
 
@@ -71,8 +85,10 @@ export function mergeUsersWithTaskAssignees(existingUsers: HouseUser[], tasks: P
   });
 }
 
-export function getInitialHouseUsers(tasks: Pick<CleaningTask, "assignedTo">[] = mockTasks) {
-  return mergeUsersWithTaskAssignees(mockUsers, tasks);
+export function getInitialHouseUsers(
+  tasks: Pick<CleaningTask, "assignedTo">[] = [],
+) {
+  return mergeUsersWithTaskAssignees([adminUser], tasks);
 }
 
 function readStoredUsers() {
@@ -98,9 +114,23 @@ export function saveHouseUsers(users: HouseUser[]) {
   window.localStorage.setItem(storageKeys.users, JSON.stringify(users));
 }
 
-export function getHouseUsers(tasks: Pick<CleaningTask, "assignedTo">[] = mockTasks) {
+export function getHouseUsers(tasks: Pick<CleaningTask, "assignedTo">[] = []) {
   const storedUsers = readStoredUsers();
-  const mergedUsers = mergeUsersWithTaskAssignees(storedUsers ?? mockUsers, tasks);
+  const adminPin =
+    storedUsers?.find(
+      (user) =>
+        user.id === adminUser.id ||
+        (user.role === "admin" && user.id === "jordi"),
+    )?.pin ?? adminUser.pin;
+  const assignableNames = new Set(
+    getAssigneeNamesFromTasks(tasks).map((name) => name.toLowerCase()),
+  );
+  const storedCalendarUsers = (storedUsers ?? []).filter(
+    (user) =>
+      user.role !== "admin" && assignableNames.has(user.name.toLowerCase()),
+  );
+  const baseUsers = [{ ...adminUser, pin: adminPin }, ...storedCalendarUsers];
+  const mergedUsers = mergeUsersWithTaskAssignees(baseUsers, tasks);
 
   if (typeof window !== "undefined") {
     saveHouseUsers(mergedUsers);
@@ -109,8 +139,14 @@ export function getHouseUsers(tasks: Pick<CleaningTask, "assignedTo">[] = mockTa
   return mergedUsers;
 }
 
-export function updateUserPin(userId: string, pin: string, tasks: Pick<CleaningTask, "assignedTo">[] = mockTasks) {
-  const users = getHouseUsers(tasks).map((user) => (user.id === userId ? { ...user, pin } : user));
+export function updateUserPin(
+  userId: string,
+  pin: string,
+  tasks: Pick<CleaningTask, "assignedTo">[] = [],
+) {
+  const users = getHouseUsers(tasks).map((user) =>
+    user.id === userId ? { ...user, pin } : user,
+  );
   saveHouseUsers(users);
   return users;
 }

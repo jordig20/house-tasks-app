@@ -1,7 +1,7 @@
 import "server-only";
 
 import { google, type calendar_v3 } from "googleapis";
-import { getTaskDateRangeLabel, isMultiDayTask, mockTasks, parseCalendarTaskTitle, taskOverlapsRange, type CleaningTask } from "@/lib/tasks";
+import { parseCalendarTaskTitle, type CleaningTask } from "@/lib/tasks";
 
 export type ConfiguredCalendar = {
   calendarName: string;
@@ -11,10 +11,18 @@ export type ConfiguredCalendar = {
 export type CalendarTaskResult = {
   tasks: CleaningTask[];
   warnings: string[];
-  isMock: boolean;
+  isConfiguredFallback: boolean;
 };
 
-const dayNames: CleaningTask["day"][] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNames: CleaningTask["day"][] = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 export function parseGoogleCalendars(value?: string): ConfiguredCalendar[] {
   if (!value) {
@@ -105,7 +113,10 @@ function getDateOnly(value: string) {
   return value.includes("T") ? value.slice(0, 10) : value;
 }
 
-function normalizeCalendarEvent(event: calendar_v3.Schema$Event, calendar: ConfiguredCalendar): CleaningTask | null {
+function normalizeCalendarEvent(
+  event: calendar_v3.Schema$Event,
+  calendar: ConfiguredCalendar,
+): CleaningTask | null {
   const sourceTitle = event.summary?.trim();
   const googleEventId = event.id;
   const eventStart = event.start?.dateTime ?? event.start?.date;
@@ -148,15 +159,22 @@ function normalizeCalendarEvent(event: calendar_v3.Schema$Event, calendar: Confi
   return task;
 }
 
-export async function getCalendarTasks(start: Date, end: Date): Promise<CalendarTaskResult> {
-  const configuredCalendars = parseGoogleCalendars(process.env.GOOGLE_CALENDARS);
+export async function getCalendarTasks(
+  start: Date,
+  end: Date,
+): Promise<CalendarTaskResult> {
+  const configuredCalendars = parseGoogleCalendars(
+    process.env.GOOGLE_CALENDARS,
+  );
   const calendarClient = getCalendarClient();
 
   if (configuredCalendars.length === 0 || !calendarClient) {
     return {
-      tasks: mockTasks.filter((task) => taskOverlapsRange(task, start, end)),
-      warnings: ["Google Calendar is not configured yet, so mock calendar tasks are shown."],
-      isMock: true,
+      tasks: [],
+      warnings: [
+        "Google Calendar is not configured yet, so no calendar tasks are shown.",
+      ],
+      isConfiguredFallback: true,
     };
   }
 
@@ -184,7 +202,9 @@ export async function getCalendarTasks(start: Date, end: Date): Promise<Calendar
     const configuredCalendar = configuredCalendars[index];
 
     if (result.status === "rejected") {
-      warnings.push(`${configuredCalendar.calendarName} calendar could not be loaded.`);
+      warnings.push(
+        `${configuredCalendar.calendarName} calendar could not be loaded.`,
+      );
       return;
     }
 
@@ -197,7 +217,11 @@ export async function getCalendarTasks(start: Date, end: Date): Promise<Calendar
     });
   });
 
-  tasks.sort((firstTask, secondTask) => new Date(firstTask.start).getTime() - new Date(secondTask.start).getTime());
+  tasks.sort(
+    (firstTask, secondTask) =>
+      new Date(firstTask.start).getTime() -
+      new Date(secondTask.start).getTime(),
+  );
 
-  return { tasks, warnings, isMock: false };
+  return { tasks, warnings, isConfiguredFallback: false };
 }
