@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { TaskCard } from "@/components/task-card";
@@ -33,10 +32,7 @@ export default function Home() {
           </div>
 
           <div className="relative rounded-[2rem] bg-white/85 p-4 shadow-soft ring-1 ring-amber-900/10 backdrop-blur">
-            <div className="absolute -right-3 -top-5 hidden rounded-[2rem] bg-olive-100 p-3 shadow-sm sm:block">
-              <Image src="/540A_logo.png" alt="540A house illustration" width={116} height={116} className="rounded-3xl" priority />
-            </div>
-            <div className="mb-4 flex items-center justify-between px-2 sm:pr-28">
+            <div className="mb-4 flex items-center justify-between gap-4 px-2">
               <div>
                 <p className="text-sm font-bold text-olive-700">Today at 540A</p>
                 <h2 className="text-2xl font-black text-amber-950">Shared checklist</h2>
