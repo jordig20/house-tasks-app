@@ -1,11 +1,58 @@
 "use client";
 
 import { StatusBadge } from "@/components/status-badge";
-import { getTaskDateRangeLabel, groupTasksByDay, isMultiDayTask, type CleaningTask } from "@/lib/tasks";
+import {
+  getLocalDateKey,
+  getTaskDateRangeLabel,
+  groupTasksByDay,
+  isMultiDayTask,
+  type CleaningTask,
+  type TaskStatus,
+} from "@/lib/tasks";
 import { useTaskStatuses } from "@/lib/use-task-statuses";
 
+const dayFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  day: "numeric",
+});
+
+const dailyStatusStyles: Record<TaskStatus, string> = {
+  pending: "bg-amber-50 text-amber-900 ring-amber-200",
+  done: "bg-olive-100 text-olive-700 ring-olive-600/20",
+  skipped: "bg-slate-100 text-slate-500 ring-slate-200",
+};
+
+function parseTaskDate(value: string) {
+  return new Date(value.includes("T") ? value : `${value}T00:00:00`);
+}
+
+function getDisplayEndDate(task: CleaningTask) {
+  const endDate = parseTaskDate(task.end);
+
+  if (task.isAllDay) {
+    endDate.setDate(endDate.getDate() - 1);
+  }
+
+  return endDate;
+}
+
+function getVisibleDays(task: CleaningTask) {
+  const startDate = parseTaskDate(task.start);
+  const endDate = getDisplayEndDate(task);
+  const days: Date[] = [];
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate && days.length < 7) {
+    days.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return days;
+}
+
 export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
-  const { tasksWithStatus } = useTaskStatuses(tasks);
+  const { tasksWithStatus, getTaskStatus, updateTaskStatus } =
+    useTaskStatuses(tasks);
   const multiDayTasks = tasksWithStatus.filter((task) => isMultiDayTask(task));
   const singleDayTasks = tasksWithStatus.filter((task) => !isMultiDayTask(task));
   const groupedTasks = groupTasksByDay(singleDayTasks);
@@ -36,10 +83,40 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                       {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"} · {getTaskDateRangeLabel(task)}
                     </p>
                     <p className="mt-2 rounded-xl bg-cream-50 px-3 py-2 text-xs font-bold text-slate-500 ring-1 ring-cream-200">
-                      Shows separately because this calendar event spans multiple days.
+                      Trash and recycling can be marked separately each day.
                     </p>
+                    {task.completionMode === "daily" ? (
+                      <div className="mt-3 grid gap-2 sm:grid-cols-7">
+                        {getVisibleDays(task).map((day) => {
+                          const dateKey = getLocalDateKey(day);
+                          const status = getTaskStatus(task, dateKey);
+
+                          return (
+                            <button
+                              key={dateKey}
+                              type="button"
+                              onClick={() =>
+                                updateTaskStatus(task, "done", dateKey)
+                              }
+                              className={`rounded-xl px-2 py-2 text-xs font-black ring-1 ${dailyStatusStyles[status]}`}
+                            >
+                              <span className="block">
+                                {dayFormatter.format(day)}
+                              </span>
+                              <span className="capitalize">{status}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                   </div>
-                  <StatusBadge status={task.status} />
+                  <StatusBadge
+                    status={
+                      task.completionMode === "daily"
+                        ? getTaskStatus(task)
+                        : task.status
+                    }
+                  />
                 </div>
               </article>
             ))}

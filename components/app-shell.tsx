@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import type { LoggedInUser } from "@/lib/auth";
@@ -12,14 +12,23 @@ export function AppShell({
   title,
   eyebrow,
   requireAdmin = false,
+  wide = false,
 }: {
   children: ReactNode;
   title: string;
   eyebrow: string;
   requireAdmin?: boolean;
+  wide?: boolean;
 }) {
-  const [user] = useState<LoggedInUser | null>(() => getLoggedInUser());
-  const isReady = true;
+  const [user, setUser] = useState<LoggedInUser | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUser(getLoggedInUser());
+      setIsReady(true);
+    });
+  }, []);
 
   const needsLogin = isReady && !user;
   const isDenied = isReady && !!user && requireAdmin && user.role !== "admin";
@@ -27,7 +36,7 @@ export function AppShell({
   return (
     <main className="min-h-screen bg-cream-50 px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
       <AppHeader user={user} />
-      <div className="mx-auto max-w-3xl">
+      <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
         <header className="mb-6">
           <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">
             {eyebrow}

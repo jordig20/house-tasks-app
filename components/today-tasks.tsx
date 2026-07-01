@@ -2,12 +2,17 @@
 
 import { TaskCard } from "@/components/task-card";
 import { useTaskStatuses } from "@/lib/use-task-statuses";
-import type { CleaningTask } from "@/lib/tasks";
+import { getLocalDateKey, type CleaningTask } from "@/lib/tasks";
 
 export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
-  const { tasksWithStatus, updateStatus } = useTaskStatuses(tasks);
-  const completedCount = tasksWithStatus.filter((task) => task.status === "done").length;
-  const progressWidth = tasksWithStatus.length > 0 ? (completedCount / tasksWithStatus.length) * 100 : 0;
+  const { getTaskStatus, updateTaskStatus } = useTaskStatuses(tasks);
+  const todayKey = getLocalDateKey(new Date());
+  const tasksWithTodayStatus = tasks.map((task) => ({
+    ...task,
+    status: getTaskStatus(task, todayKey),
+  }));
+  const completedCount = tasksWithTodayStatus.filter((task) => task.status === "done").length;
+  const progressWidth = tasksWithTodayStatus.length > 0 ? (completedCount / tasksWithTodayStatus.length) * 100 : 0;
 
   return (
     <>
@@ -17,14 +22,21 @@ export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
           <div className="h-full rounded-full bg-roof-800" style={{ width: `${progressWidth}%` }} />
         </div>
         <p className="mt-3 text-sm font-bold text-slate-700">
-          {completedCount} of {tasksWithStatus.length} calendar tasks done
+          {completedCount} of {tasksWithTodayStatus.length} calendar tasks done
         </p>
       </section>
 
       <div className="space-y-4">
-        {tasksWithStatus.length > 0 ? (
-          tasksWithStatus.map((task) => (
-            <TaskCard key={task.id} task={task} status={task.status} onStatusChange={updateStatus} />
+        {tasksWithTodayStatus.length > 0 ? (
+          tasksWithTodayStatus.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              status={task.status}
+              onStatusChange={(selectedTask, status) =>
+                updateTaskStatus(selectedTask, status, todayKey)
+              }
+            />
           ))
         ) : (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-sm">

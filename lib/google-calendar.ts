@@ -1,7 +1,13 @@
 import "server-only";
 
 import { google, type calendar_v3 } from "googleapis";
-import { parseCalendarTaskTitle, type CleaningTask } from "@/lib/tasks";
+import {
+  getTaskCompletionMode,
+  getTaskDateRangeLabel,
+  isMultiDayTask,
+  parseCalendarTaskTitle,
+  type CleaningTask,
+} from "@/lib/tasks";
 
 export type ConfiguredCalendar = {
   calendarName: string;
@@ -73,6 +79,19 @@ export function getWeekRange(now = new Date()) {
   return { start, end };
 }
 
+export function getMonthRange(now = new Date()) {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+  const start = new Date(monthStart);
+  start.setDate(start.getDate() - start.getDay());
+
+  const end = new Date(monthEnd);
+  end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
+
+  return { start, end, monthStart };
+}
+
 function getCalendarClient() {
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
@@ -140,6 +159,9 @@ function normalizeCalendarEvent(
     taskTitle: parsedTitle.taskTitle,
     title: parsedTitle.taskTitle,
     assignedTo: parsedTitle.assignedTo,
+    assignedUserIds: parsedTitle.assignedUserIds,
+    taskKind: parsedTitle.taskKind,
+    completionMode: getTaskCompletionMode(parsedTitle),
     start: eventStart,
     end: eventEnd,
     date,

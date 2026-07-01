@@ -1,22 +1,35 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { UserAvatar } from "@/components/user-avatar";
 import { getLoggedInUser } from "@/lib/auth";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
-import { defaultMemberPin, getHouseUsers, updateUserPin } from "@/lib/users";
+import {
+  defaultMemberPin,
+  getHouseUsers,
+  getInitialHouseUsers,
+  updateUserPin,
+} from "@/lib/users";
 
 function isFourDigitPin(pin: string) {
   return /^\d{4}$/.test(pin);
 }
 
 export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[] }) {
-  const [users, setUsers] = useState<HouseUser[]>(() => getHouseUsers(tasks));
-  const [currentUserId] = useState<string | null>(() => getLoggedInUser()?.id ?? null);
+  const [users, setUsers] = useState<HouseUser[]>(() =>
+    getInitialHouseUsers(tasks),
+  );
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [newPin, setNewPin] = useState("");
   const [message, setMessage] = useState("");
   const currentUser = users.find((user) => user.id === currentUserId) ?? null;
 
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUsers(getHouseUsers(tasks));
+      setCurrentUserId(getLoggedInUser()?.id ?? null);
+    });
+  }, [tasks]);
 
   function resetPin(user: HouseUser) {
     setUsers(updateUserPin(user.id, defaultMemberPin, tasks));

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { LoggedInUser } from "@/lib/auth";
 import { clearLoggedInUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/brand-logo";
@@ -10,12 +10,14 @@ import { UserAvatar } from "@/components/user-avatar";
 const navItems = [
   { href: "/today", label: "Today" },
   { href: "/week", label: "Week" },
+  { href: "/month", label: "Month" },
   { href: "/history", label: "History" },
   { href: "/admin/users", label: "Users" },
 ];
 
 export function AppHeader({ user }: { user: LoggedInUser | null }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   function signOut() {
     clearLoggedInUser();
@@ -28,11 +30,19 @@ export function AppHeader({ user }: { user: LoggedInUser | null }) {
         <div className="flex items-center gap-6">
           <BrandLogo compact />
           <nav className="hidden items-center gap-1 rounded-full bg-white p-1 shadow-sm sm:flex">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full px-3 py-2 text-sm font-bold text-slate-600 hover:bg-cream-100 hover:text-roof-800">
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`rounded-full px-3 py-2 text-sm font-bold hover:bg-cream-100 hover:text-roof-800 ${isActive ? "bg-cream-100 text-roof-800" : "text-slate-600"}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         {user ? (

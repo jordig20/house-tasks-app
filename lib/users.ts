@@ -1,21 +1,12 @@
 import {
   adminUser,
+  getUserIdFromName,
   storageKeys,
   type CleaningTask,
   type HouseUser,
 } from "@/lib/tasks";
 
 export const defaultMemberPin = "0000";
-
-function slugifyUserName(name: string) {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 export function getAssigneeNamesFromTasks(
   tasks: Pick<CleaningTask, "assignedTo">[],
@@ -39,7 +30,7 @@ export function getAssigneeNamesFromTasks(
 
 export function createUserFromName(name: string): HouseUser {
   return {
-    id: slugifyUserName(name),
+    id: getUserIdFromName(name),
     name,
     role: "member",
     pin: defaultMemberPin,
@@ -125,10 +116,17 @@ export function getHouseUsers(tasks: Pick<CleaningTask, "assignedTo">[] = []) {
   const assignableNames = new Set(
     getAssigneeNamesFromTasks(tasks).map((name) => name.toLowerCase()),
   );
-  const storedCalendarUsers = (storedUsers ?? []).filter(
-    (user) =>
-      user.role !== "admin" && assignableNames.has(user.name.toLowerCase()),
-  );
+  const storedCalendarUsers = (storedUsers ?? []).filter((user) => {
+    if (user.role === "admin") {
+      return false;
+    }
+
+    if (assignableNames.size === 0) {
+      return true;
+    }
+
+    return assignableNames.has(user.name.toLowerCase());
+  });
   const baseUsers = [{ ...adminUser, pin: adminPin }, ...storedCalendarUsers];
   const mergedUsers = mergeUsersWithTaskAssignees(baseUsers, tasks);
 
