@@ -1,13 +1,32 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { TaskCard } from "@/components/task-card";
+import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
+import { getBanffDateKey } from "@/lib/banff-time";
 import { useTaskStatuses } from "@/lib/use-task-statuses";
-import { getLocalDateKey, type CleaningTask } from "@/lib/tasks";
+import type { CleaningTask } from "@/lib/tasks";
 
 export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
+  const [user, setUser] = useState<LoggedInUser | null>(null);
   const { getTaskStatus, updateTaskStatus } = useTaskStatuses(tasks);
-  const todayKey = getLocalDateKey(new Date());
-  const tasksWithTodayStatus = tasks.map((task) => ({
+  const todayKey = getBanffDateKey(new Date());
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUser(getLoggedInUser());
+    });
+  }, []);
+
+  const visibleTasks = useMemo(() => {
+    if (!user || user.role === "admin") {
+      return tasks;
+    }
+
+    return tasks.filter((task) => task.assignedUserIds.includes(user.id));
+  }, [tasks, user]);
+
+  const tasksWithTodayStatus = visibleTasks.map((task) => ({
     ...task,
     status: getTaskStatus(task, todayKey),
   }));

@@ -22,9 +22,12 @@ export function LoginScreen({
     getInitialHouseUsers(tasks),
   );
   const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
+  const [isUserPickerOpen, setIsUserPickerOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [storedUserName, setStoredUserName] = useState<string | null>(null);
+  const selectedUser =
+    users.find((user) => user.id === selectedUserId) ?? users[0] ?? null;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -72,29 +75,79 @@ export function LoginScreen({
         ) : null}
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-          <div className="grid gap-3">
-            {users.map((user) => (
-              <label
-                key={user.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-3xl border p-4 transition ${selectedUserId === user.id ? "border-roof-600 bg-cream-100" : "border-slate-200 bg-white"}`}
-              >
-                <input
-                  className="sr-only"
-                  type="radio"
-                  name="user"
-                  value={user.id}
-                  checked={selectedUserId === user.id}
-                  onChange={(event) => setSelectedUserId(event.target.value)}
-                />
-                <UserAvatar user={user} />
-                <span>
-                  <span className="block font-black">{user.name}</span>
-                  <span className="text-sm capitalize text-slate-500">
-                    {user.role} · PIN required
+          <div>
+            <label className="text-sm font-bold text-slate-700">
+              Account
+            </label>
+            <button
+              type="button"
+              className="mt-2 flex w-full items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-roof-600 focus:border-roof-600 focus:outline-none"
+              aria-expanded={isUserPickerOpen}
+              onClick={() => setIsUserPickerOpen((isOpen) => !isOpen)}
+            >
+              {selectedUser ? (
+                <span className="flex min-w-0 items-center gap-3">
+                  <UserAvatar user={selectedUser} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-lg font-black">
+                      {selectedUser.name}
+                    </span>
+                    <span className="block text-sm capitalize text-slate-500">
+                      {selectedUser.role} · PIN required
+                    </span>
                   </span>
                 </span>
-              </label>
-            ))}
+              ) : (
+                <span className="font-bold text-slate-500">
+                  Select account
+                </span>
+              )}
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream-50 ring-1 ring-cream-200">
+                <span
+                  className={`h-2.5 w-2.5 border-b-2 border-r-2 border-roof-800 transition ${isUserPickerOpen ? "-translate-y-0.5 rotate-[225deg]" : "translate-y-[-2px] rotate-45"}`}
+                  aria-hidden="true"
+                />
+              </span>
+            </button>
+
+            {isUserPickerOpen ? (
+              <div className="mt-3 max-h-72 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-2 shadow-soft">
+                {users.map((user) => (
+                  <label
+                    key={user.id}
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition ${selectedUserId === user.id ? "bg-cream-100 ring-1 ring-roof-600/30" : "hover:bg-cream-50"}`}
+                  >
+                    <input
+                      className="sr-only"
+                      type="radio"
+                      name="user"
+                      value={user.id}
+                      checked={selectedUserId === user.id}
+                      onChange={(event) => {
+                        setSelectedUserId(event.target.value);
+                        setIsUserPickerOpen(false);
+                        setPin("");
+                        setError("");
+                      }}
+                    />
+                    <UserAvatar user={user} size="sm" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-black">
+                        {user.name}
+                      </span>
+                      <span className="block text-xs capitalize text-slate-500">
+                        {user.role} · PIN required
+                      </span>
+                    </span>
+                    {selectedUserId === user.id ? (
+                      <span className="rounded-full bg-roof-800 px-2 py-1 text-xs font-black text-white">
+                        Selected
+                      </span>
+                    ) : null}
+                  </label>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div>

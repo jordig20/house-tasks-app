@@ -2,6 +2,11 @@ import "server-only";
 
 import { google, type calendar_v3 } from "googleapis";
 import {
+  getBanffDateKey,
+  getBanffTodayRange,
+  getBanffWeekRange,
+} from "@/lib/banff-time";
+import {
   getTaskCompletionMode,
   getTaskDateRangeLabel,
   isMultiDayTask,
@@ -59,22 +64,13 @@ export function parseGoogleCalendars(value?: string): ConfiguredCalendar[] {
 }
 
 export function getTodayRange(now = new Date()) {
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  const { start, end } = getBanffTodayRange(now);
 
   return { start, end };
 }
 
 export function getWeekRange(now = new Date()) {
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - start.getDay());
-
-  const end = new Date(start);
-  end.setDate(end.getDate() + 7);
+  const { start, end } = getBanffWeekRange(now);
 
   return { start, end };
 }
@@ -130,6 +126,28 @@ function formatDate(value: string) {
 
 function getDateOnly(value: string) {
   return value.includes("T") ? value.slice(0, 10) : value;
+}
+
+function getPreviousDateKey(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  date.setDate(date.getDate() - 1);
+
+  return getDateOnly(date.toISOString());
+}
+
+function getTaskVisibleEndKey(task: CleaningTask) {
+  const endKey = getDateOnly(task.end);
+
+  return task.isAllDay ? getPreviousDateKey(endKey) : endKey;
+}
+
+function taskOverlapsRange(task: CleaningTask, start: Date, end: Date) {
+  const rangeStartKey = getBanffDateKey(start);
+  const rangeEndExclusiveKey = getBanffDateKey(end);
+  const taskStartKey = getDateOnly(task.start);
+  const taskEndKey = getTaskVisibleEndKey(task);
+
+  return taskStartKey < rangeEndExclusiveKey && taskEndKey >= rangeStartKey;
 }
 
 function normalizeCalendarEvent(
@@ -239,11 +257,13 @@ export async function getCalendarTasks(
     });
   });
 
-  tasks.sort(
+  const visibleTasks = tasks.filter((task) => taskOverlapsRange(task, start, end));
+
+  visibleTasks.sort(
     (firstTask, secondTask) =>
       new Date(firstTask.start).getTime() -
       new Date(secondTask.start).getTime(),
   );
 
-  return { tasks, warnings, isConfiguredFallback: false };
+  return { tasks: visibleTasks, warnings, isConfiguredFallback: false };
 }
