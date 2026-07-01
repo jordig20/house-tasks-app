@@ -6,13 +6,34 @@ import { getLoggedInUser } from "@/lib/auth";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import {
   defaultMemberPin,
+  getUserColorClass,
   getHouseUsers,
   getInitialHouseUsers,
+  updateUserColor,
   updateUserPin,
+  userColorOptions,
 } from "@/lib/users";
 
 function isFourDigitPin(pin: string) {
   return /^\d{4}$/.test(pin);
+}
+
+function getColorGroupNames(
+  user: HouseUser,
+  tasks: Pick<CleaningTask, "assignedTo">[],
+) {
+  const pairTask = tasks.find((task) => {
+    const normalizedAssignees = task.assignedTo.map((name) =>
+      name.trim().toLowerCase(),
+    );
+
+    return (
+      normalizedAssignees.length > 1 &&
+      normalizedAssignees.includes(user.name.toLowerCase())
+    );
+  });
+
+  return pairTask?.assignedTo ?? [user.name];
 }
 
 export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[] }) {
@@ -20,6 +41,7 @@ export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[
     getInitialHouseUsers(tasks),
   );
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [openColorUserId, setOpenColorUserId] = useState<string | null>(null);
   const [newPin, setNewPin] = useState("");
   const [message, setMessage] = useState("");
   const currentUser = users.find((user) => user.id === currentUserId) ?? null;
@@ -34,6 +56,14 @@ export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[
   function resetPin(user: HouseUser) {
     setUsers(updateUserPin(user.id, defaultMemberPin, tasks));
     setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
+  }
+
+  function handleChangeColor(user: HouseUser, color: (typeof userColorOptions)[number]["id"]) {
+    const nextUsers = updateUserColor(user.id, color, tasks);
+    const groupNames = getColorGroupNames(user, tasks);
+
+    setUsers(nextUsers);
+    setMessage(`Color updated for ${groupNames.join(" & ")}.`);
   }
 
   function handleChangeOwnPin(event: FormEvent<HTMLFormElement>) {
@@ -64,12 +94,46 @@ export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[
         {users.map((user) => (
           <article key={user.id} className="rounded-[2rem] bg-white p-5 shadow-sm">
             <div className="flex items-center gap-4">
-              <UserAvatar user={user} size="lg" />
+              <button
+                type="button"
+                className="rounded-full focus:outline-none focus:ring-2 focus:ring-roof-800/30"
+                onClick={() =>
+                  setOpenColorUserId((currentUserId) =>
+                    currentUserId === user.id ? null : user.id,
+                  )
+                }
+                title="Edit color"
+              >
+                <UserAvatar user={user} size="lg" />
+              </button>
               <div>
                 <h2 className="text-lg font-black">{user.name}</h2>
                 <p className="text-sm capitalize text-slate-600">{user.role}</p>
               </div>
             </div>
+            {openColorUserId === user.id ? (
+              <div className="mt-4 rounded-2xl bg-cream-50 p-3">
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  Color
+                </p>
+                <p className="mt-1 text-xs font-bold text-slate-600">
+                  Applies to {getColorGroupNames(user, tasks).join(" & ")}.
+                </p>
+                <div className="mt-3 grid grid-cols-7 gap-2">
+                  {userColorOptions.map((color) => (
+                    <button
+                      key={color.id}
+                      type="button"
+                      className={`h-9 rounded-full font-black ring-2 transition hover:scale-105 ${getUserColorClass(color.id, user.role)} ${user.color === color.id ? "ring-roof-800" : "ring-transparent"}`}
+                      onClick={() => handleChangeColor(user, color.id)}
+                      title={color.label}
+                    >
+                      {user.name.slice(0, 1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 rounded-2xl bg-cream-50 p-3 text-sm text-slate-700">
               Current PIN: <strong className="text-slate-950">{user.pin}</strong>
             </div>

@@ -5,6 +5,7 @@ export type HouseUser = {
   name: string;
   role: UserRole;
   pin: string;
+  color?: string;
 };
 
 export type TaskStatus = "pending" | "done" | "skipped";

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
+import { getBanffDateKey } from "@/lib/banff-time";
 import {
   getLocalDateKey,
   type CleaningTask,
@@ -19,6 +21,16 @@ const statusStyles: Record<TaskStatus, string> = {
   pending: "bg-amber-100 text-amber-950 ring-amber-200",
   done: "bg-olive-100 text-olive-700 ring-olive-600/20 line-through",
   skipped: "bg-slate-100 text-slate-500 ring-slate-200",
+};
+const pastStatusStyles: Record<TaskStatus, string> = {
+  pending: "bg-slate-100 text-slate-500 ring-slate-200",
+  done: "bg-slate-200 text-slate-600 ring-slate-300 line-through",
+  skipped: "bg-slate-100 text-slate-400 ring-slate-200",
+};
+const nextStatuses: Record<TaskStatus, TaskStatus> = {
+  pending: "done",
+  done: "skipped",
+  skipped: "pending",
 };
 
 function getDateKey(date: Date) {
@@ -80,6 +92,29 @@ function getTaskMonthLabel(task: CleaningTask) {
   return `${assignees} - ${task.title}`;
 }
 
+function getTaskIcon(task: CleaningTask) {
+  if (task.taskKind === "trash") {
+    return "🗑";
+  }
+
+  if (task.taskKind === "bathroom") {
+    return "🚿";
+  }
+
+  return "•";
+}
+
+function getAssigneeInitials(task: CleaningTask) {
+  if (task.assignedTo.length === 0) {
+    return "Un";
+  }
+
+  return task.assignedTo
+    .map((person) => person.trim().charAt(0).toUpperCase())
+    .filter(Boolean)
+    .join("&");
+}
+
 export function MonthCalendar({
   tasks,
   monthStart,
@@ -87,10 +122,18 @@ export function MonthCalendar({
   tasks: CleaningTask[];
   monthStart: string;
 }) {
-  const { getTaskStatus } = useTaskStatuses(tasks);
+  const [user, setUser] = useState<LoggedInUser | null>(null);
+  const { getTaskStatus, updateTaskStatus } = useTaskStatuses(tasks);
   const days = useMemo(() => getCalendarDays(monthStart), [monthStart]);
   const currentMonth = parseTaskDate(monthStart).getMonth();
-  const todayKey = getDateKey(new Date());
+  const todayKey = getBanffDateKey(new Date());
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUser(getLoggedInUser());
+    });
+  }, []);
+
   const visibleTaskInstances = days.flatMap((day) => {
     const dayKey = getDateKey(day);
 
@@ -153,31 +196,61 @@ export function MonthCalendar({
               }));
             const isCurrentMonth = day.getMonth() === currentMonth;
             const isToday = dayKey === todayKey;
+            const isPastDay = dayKey < todayKey;
 
             return (
               <div
                 key={dayKey}
-                className={`min-h-28 border-b border-r border-slate-200 p-1.5 sm:min-h-36 sm:p-2 ${isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
+                className={`min-h-28 border-b border-r p-1.5 sm:min-h-36 sm:p-2 ${isToday ? "border-roof-600 bg-cream-50 ring-2 ring-inset ring-roof-800/25" : "border-slate-200"} ${isPastDay ? "bg-slate-50 text-slate-400" : isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
               >
                 <div className="mb-1 flex items-center justify-between">
                   <span
-                    className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-black ${isToday ? "bg-roof-800 text-white" : "text-slate-700"}`}
+                    className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-black ${isToday ? "bg-roof-800 text-white shadow-sm" : isPastDay ? "text-slate-400" : "text-slate-700"}`}
                   >
                     {dayFormatter.format(day)}
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  {dayTasks.slice(0, 3).map((task) => (
-                    <div
-                      key={`${dayKey}-${task.id}`}
-                      className={`truncate rounded-md px-1.5 py-1 text-[0.68rem] font-bold ring-1 sm:text-xs ${statusStyles[task.status]}`}
-                      title={`${getTaskMonthLabel(task)} - ${task.status}`}
-                    >
-                      {task.status === "done" ? "Done: " : ""}
-                      {getTaskMonthLabel(task)}
-                    </div>
-                  ))}
+                  {dayTasks.slice(0, 3).map((task) => {
+                    const canUpdate =
+                      !!user &&
+                      (user.role === "admin" ||
+                        task.assignedUserIds.includes(user.id));
+                    const nextStatus = nextStatuses[task.status];
+                    const taskStyles = isPastDay
+                      ? pastStatusStyles[task.status]
+                      : statusStyles[task.status];
+
+                    return (
+                      <button
+                        key={`${dayKey}-${task.id}`}
+                        type="button"
+                        className={`w-full rounded-md px-1.5 py-1 text-[0.68rem] font-bold ring-1 transition sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
+                        title={
+                          canUpdate
+                            ? `${getTaskMonthLabel(task)} - click for ${nextStatus}`
+                            : `${getTaskMonthLabel(task)} - assigned to ${task.assignedTo.join(", ")}`
+                        }
+                        disabled={!canUpdate}
+                        onClick={() =>
+                          updateTaskStatus(task, nextStatus, dayKey)
+                        }
+                      >
+                        <span className="flex items-center justify-center gap-1 sm:hidden">
+                          <span className="truncate">
+                            {getAssigneeInitials(task)}
+                          </span>
+                          <span aria-hidden="true">{getTaskIcon(task)}</span>
+                        </span>
+                        <span className="hidden truncate sm:block">
+                          {task.status === "done" ? "Done: " : ""}
+                          {task.status === "skipped" ? "Skipped: " : ""}
+                          {getTaskMonthLabel(task)}
+                        </span>
+                      </button>
+                    );
+                  })}
                   {dayTasks.length > 3 ? (
                     <p className="px-1 text-[0.68rem] font-black text-slate-500">
                       +{dayTasks.length - 3} more
