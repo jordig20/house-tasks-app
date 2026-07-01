@@ -17,7 +17,7 @@ function CalendarWarnings({ warnings }: { warnings: string[] }) {
 }
 
 export default async function MonthPage() {
-  const { start, end, monthStart } = getMonthRange();
+  const { start, end, monthStartKey } = getMonthRange();
   const calendarTasks = await getCalendarTasks(start, end);
 
   return (
@@ -33,7 +33,7 @@ export default async function MonthPage() {
       <CalendarWarnings warnings={calendarTasks.warnings} />
       <MonthCalendar
         tasks={calendarTasks.tasks}
-        monthStart={monthStart.toISOString()}
+        monthStart={monthStartKey}
       />
     </AppShell>
   );

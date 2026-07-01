@@ -73,6 +73,13 @@ function taskTouchesDay(task: CleaningTask, day: Date) {
   return taskStart < dayEnd && taskEnd >= dayStart;
 }
 
+function getTaskMonthLabel(task: CleaningTask) {
+  const assignees =
+    task.assignedTo.length > 0 ? task.assignedTo.join(" & ") : "Unassigned";
+
+  return `${assignees} - ${task.title}`;
+}
+
 export function MonthCalendar({
   tasks,
   monthStart,
@@ -165,10 +172,10 @@ export function MonthCalendar({
                     <div
                       key={`${dayKey}-${task.id}`}
                       className={`truncate rounded-md px-1.5 py-1 text-[0.68rem] font-bold ring-1 sm:text-xs ${statusStyles[task.status]}`}
-                      title={`${task.title} - ${task.status}`}
+                      title={`${getTaskMonthLabel(task)} - ${task.status}`}
                     >
                       {task.status === "done" ? "Done: " : ""}
-                      {task.title}
+                      {getTaskMonthLabel(task)}
                     </div>
                   ))}
                   {dayTasks.length > 3 ? (

@@ -69,10 +69,6 @@ export function TaskCard({
           </div>
         </div>
 
-        <div className="mt-3 rounded-xl bg-white px-3 py-2 ring-1 ring-cream-200">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Source calendar title</p>
-          <p className="mt-1 text-sm font-bold text-slate-700">{task.sourceTitle}</p>
-        </div>
       </div>
 
       {onStatusChange ? (

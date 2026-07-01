@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import {
   getLocalDateKey,
   getTaskDateRangeLabel,
@@ -51,11 +53,18 @@ function getVisibleDays(task: CleaningTask) {
 }
 
 export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
+  const [user, setUser] = useState<LoggedInUser | null>(null);
   const { tasksWithStatus, getTaskStatus, updateTaskStatus } =
     useTaskStatuses(tasks);
   const multiDayTasks = tasksWithStatus.filter((task) => isMultiDayTask(task));
   const singleDayTasks = tasksWithStatus.filter((task) => !isMultiDayTask(task));
   const groupedTasks = groupTasksByDay(singleDayTasks);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setUser(getLoggedInUser());
+    });
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -90,15 +99,29 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                         {getVisibleDays(task).map((day) => {
                           const dateKey = getLocalDateKey(day);
                           const status = getTaskStatus(task, dateKey);
+                          const canUpdate =
+                            !!user &&
+                            (user.role === "admin" ||
+                              task.assignedUserIds.includes(user.id));
+                          const nextStatus =
+                            status === "done" ? "pending" : "done";
 
                           return (
                             <button
                               key={dateKey}
                               type="button"
-                              onClick={() =>
-                                updateTaskStatus(task, "done", dateKey)
+                              onClick={() => {
+                                if (canUpdate) {
+                                  updateTaskStatus(task, nextStatus, dateKey);
+                                }
+                              }}
+                              className={`rounded-xl px-2 py-2 text-xs font-black ring-1 transition ${dailyStatusStyles[status]} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-55"}`}
+                              disabled={!canUpdate}
+                              title={
+                                canUpdate
+                                  ? "Toggle daily status"
+                                  : `Assigned to ${task.assignedTo.join(", ")}`
                               }
-                              className={`rounded-xl px-2 py-2 text-xs font-black ring-1 ${dailyStatusStyles[status]}`}
                             >
                               <span className="block">
                                 {dayFormatter.format(day)}
@@ -144,9 +167,6 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                       </div>
                       <p className="mt-1 text-sm font-bold text-slate-600">
                         {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"} · {getTaskDateRangeLabel(task)}
-                      </p>
-                      <p className="mt-2 truncate rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-500 ring-1 ring-cream-200">
-                        {task.sourceTitle}
                       </p>
                     </div>
                     <StatusBadge status={task.status} />

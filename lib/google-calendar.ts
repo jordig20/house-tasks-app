@@ -3,6 +3,7 @@ import "server-only";
 import { google, type calendar_v3 } from "googleapis";
 import {
   getBanffDateKey,
+  getBanffMonthRange,
   getBanffTodayRange,
   getBanffWeekRange,
 } from "@/lib/banff-time";
@@ -76,16 +77,9 @@ export function getWeekRange(now = new Date()) {
 }
 
 export function getMonthRange(now = new Date()) {
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const { start, end, monthStartKey } = getBanffMonthRange(now);
 
-  const start = new Date(monthStart);
-  start.setDate(start.getDate() - start.getDay());
-
-  const end = new Date(monthEnd);
-  end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
-
-  return { start, end, monthStart };
+  return { start, end, monthStartKey };
 }
 
 function getCalendarClient() {

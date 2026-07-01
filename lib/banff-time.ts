@@ -76,12 +76,17 @@ function addDays(parts: DateParts, days: number): DateParts {
   };
 }
 
-export function getBanffDateKey(date = new Date()) {
-  const parts = getPartsInBanff(date);
+function getDateKeyFromParts(parts: DateParts) {
   const month = String(parts.month).padStart(2, "0");
   const day = String(parts.day).padStart(2, "0");
 
   return `${parts.year}-${month}-${day}`;
+}
+
+export function getBanffDateKey(date = new Date()) {
+  const parts = getPartsInBanff(date);
+
+  return getDateKeyFromParts(parts);
 }
 
 export function getBanffTodayRange(now = new Date()) {
@@ -106,5 +111,37 @@ export function getBanffWeekRange(now = new Date()) {
     end: banffDateToUtcDate(weekEnd),
     startKey: getBanffDateKey(banffDateToUtcDate(weekStart)),
     endKey: getBanffDateKey(banffDateToUtcDate(addDays(weekEnd, -1))),
+  };
+}
+
+export function getBanffMonthRange(now = new Date()) {
+  const today = getPartsInBanff(now);
+  const monthStart: DateParts = {
+    year: today.year,
+    month: today.month,
+    day: 1,
+  };
+  const nextMonthStartDate = new Date(
+    Date.UTC(today.year, today.month, 1),
+  );
+  const nextMonthStart: DateParts = {
+    year: nextMonthStartDate.getUTCFullYear(),
+    month: nextMonthStartDate.getUTCMonth() + 1,
+    day: 1,
+  };
+  const monthStartDate = new Date(
+    Date.UTC(monthStart.year, monthStart.month - 1, monthStart.day),
+  );
+  const visibleStart = addDays(monthStart, -monthStartDate.getUTCDay());
+  const nextMonthStartWeekday = nextMonthStartDate.getUTCDay();
+  const visibleEnd = addDays(
+    nextMonthStart,
+    (7 - nextMonthStartWeekday) % 7,
+  );
+
+  return {
+    start: banffDateToUtcDate(visibleStart),
+    end: banffDateToUtcDate(visibleEnd),
+    monthStartKey: getDateKeyFromParts(monthStart),
   };
 }
