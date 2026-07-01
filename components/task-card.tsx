@@ -2,7 +2,6 @@
 
 import {
   getTaskDateRangeLabel,
-  isMultiDayTask,
   type CleaningTask,
   type TaskStatus,
 } from "@/lib/tasks";
@@ -12,33 +11,26 @@ import { UserAvatar } from "@/components/user-avatar";
 export function TaskCard({
   task,
   status,
+  showCalendarChip = false,
   onStatusChange,
 }: {
   task: CleaningTask;
   status?: TaskStatus;
+  showCalendarChip?: boolean;
   onStatusChange?: (task: CleaningTask, status: TaskStatus) => void;
 }) {
   const currentStatus = status ?? task.status;
-  const isMultiDay = isMultiDayTask(task);
-  const isDaily = task.completionMode === "daily";
 
   return (
     <article className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-bold text-roof-800">
-              {isDaily
-                ? "Daily check"
-                : isMultiDay
-                  ? "Weekly responsibility"
-                  : "Google Calendar task"}
-            </p>
-            <span className="rounded-full bg-cream-100 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+          <h3 className="text-lg font-black leading-snug text-slate-950">{task.title}</h3>
+          {showCalendarChip ? (
+            <p className="mt-1 text-xs font-bold uppercase tracking-wide text-roof-800">
               {task.calendarName}
-            </span>
-          </div>
-          <h3 className="mt-1 text-lg font-black leading-snug text-slate-950">{task.title}</h3>
+            </p>
+          ) : null}
         </div>
         <StatusBadge status={currentStatus} />
       </div>
@@ -63,12 +55,11 @@ export function TaskCard({
           <div className="shrink-0 text-right">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Date</p>
             <p className="text-sm font-bold text-slate-950">{getTaskDateRangeLabel(task)}</p>
-            <p className="mt-1 text-xs font-bold text-slate-500">
-              {isDaily ? "Marked per day" : task.dueLabel}
-            </p>
+            {task.dueLabel && task.completionMode !== "daily" ? (
+              <p className="mt-1 text-xs font-bold text-slate-500">{task.dueLabel}</p>
+            ) : null}
           </div>
         </div>
-
       </div>
 
       {onStatusChange ? (

@@ -33,6 +33,12 @@ const nextStatuses: Record<TaskStatus, TaskStatus> = {
   skipped: "pending",
 };
 
+const statusLabels: Record<TaskStatus, string> = {
+  pending: "pending",
+  done: "done",
+  skipped: "skipped",
+};
+
 function getDateKey(date: Date) {
   return getLocalDateKey(date);
 }
@@ -90,18 +96,6 @@ function getTaskMonthLabel(task: CleaningTask) {
     task.assignedTo.length > 0 ? task.assignedTo.join(" & ") : "Unassigned";
 
   return `${assignees} - ${task.title}`;
-}
-
-function getTaskIcon(task: CleaningTask) {
-  if (task.taskKind === "trash") {
-    return "🗑";
-  }
-
-  if (task.taskKind === "bathroom") {
-    return "🚿";
-  }
-
-  return "•";
 }
 
 function getAssigneeInitials(task: CleaningTask) {
@@ -229,7 +223,7 @@ export function MonthCalendar({
                         className={`w-full rounded-md px-1.5 py-1 text-[0.68rem] font-bold ring-1 transition sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
                         title={
                           canUpdate
-                            ? `${getTaskMonthLabel(task)} - click for ${nextStatus}`
+                            ? `${getTaskMonthLabel(task)} - click for ${statusLabels[nextStatus]}`
                             : `${getTaskMonthLabel(task)} - assigned to ${task.assignedTo.join(", ")}`
                         }
                         disabled={!canUpdate}
@@ -241,7 +235,6 @@ export function MonthCalendar({
                           <span className="truncate">
                             {getAssigneeInitials(task)}
                           </span>
-                          <span aria-hidden="true">{getTaskIcon(task)}</span>
                         </span>
                         <span className="hidden truncate sm:block">
                           {task.status === "done" ? "Done: " : ""}

@@ -7,17 +7,23 @@ import { clearLoggedInUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 
-const navItems = [
+const memberNavItems = [
   { href: "/today", label: "Today" },
   { href: "/week", label: "Week" },
   { href: "/month", label: "Month" },
-  { href: "/history", label: "History" },
+];
+
+const adminNavItems = [
+  { href: "/today", label: "Today" },
+  { href: "/week", label: "Week" },
+  { href: "/month", label: "Month" },
   { href: "/admin/users", label: "Users" },
 ];
 
 export function AppHeader({ user }: { user: LoggedInUser | null }) {
   const router = useRouter();
   const pathname = usePathname();
+  const navItems = user?.role === "admin" ? adminNavItems : memberNavItems;
 
   function signOut() {
     clearLoggedInUser();

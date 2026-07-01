@@ -30,6 +30,11 @@ const dailyStatusButtonStyles: Record<TaskStatus, string> = {
   skipped: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 const dailyStatusOptions: TaskStatus[] = ["pending", "done", "skipped"];
+const dailyStatusLabels: Record<TaskStatus, string> = {
+  pending: "Pend",
+  done: "Done",
+  skipped: "Skip",
+};
 
 function parseTaskDate(value: string) {
   return new Date(value.includes("T") ? value : `${value}T00:00:00`);
@@ -67,6 +72,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
   const multiDayTasks = tasksWithStatus.filter((task) => isMultiDayTask(task));
   const singleDayTasks = tasksWithStatus.filter((task) => !isMultiDayTask(task));
   const groupedTasks = groupTasksByDay(singleDayTasks);
+  const showCalendarChip = new Set(tasks.map((task) => task.calendarName)).size > 1;
   const canUpdateTask = (task: CleaningTask, dateKey: string) =>
     !!user &&
     dateKey <= todayKey &&
@@ -107,9 +113,11 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-black text-slate-950">{task.title}</h3>
-                      <span className="rounded-full bg-cream-50 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
-                        {task.calendarName}
-                      </span>
+                      {showCalendarChip ? (
+                        <span className="rounded-full bg-cream-50 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+                          {task.calendarName}
+                        </span>
+                      ) : null}
                     </div>
                     <p className="mt-1 text-sm font-bold text-slate-600">
                       {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"} · {getTaskDateRangeLabel(task)}
@@ -144,9 +152,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                                     className={`rounded-lg px-1.5 py-1 text-[0.62rem] font-black capitalize ring-1 transition disabled:cursor-not-allowed ${status === option ? dailyStatusButtonStyles[option] : "bg-white/70 text-slate-500 ring-slate-200"} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : ""}`}
                                     disabled={!canUpdate}
                                   >
-                                    {option === "pending"
-                                      ? "Pend"
-                                      : option}
+                                    {dailyStatusLabels[option]}
                                   </button>
                                 ))}
                               </div>
@@ -184,9 +190,11 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-black text-slate-950">{task.title}</h3>
-                        <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
-                          {task.calendarName}
-                        </span>
+                        {showCalendarChip ? (
+                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+                            {task.calendarName}
+                          </span>
+                        ) : null}
                       </div>
                       <p className="mt-1 text-sm font-bold text-slate-600">
                         {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"} · {getTaskDateRangeLabel(task)}
@@ -207,7 +215,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                             className={`rounded-xl px-3 py-2 text-xs font-black capitalize ring-1 transition disabled:cursor-not-allowed disabled:opacity-55 ${task.status === option ? dailyStatusButtonStyles[option] : "bg-white/80 text-slate-500 ring-slate-200"} ${canUpdateTask(task, task.date) ? "hover:-translate-y-0.5 hover:shadow-sm" : ""}`}
                             disabled={!canUpdateTask(task, task.date)}
                           >
-                            {option === "pending" ? "Pend" : option}
+                            {dailyStatusLabels[option]}
                           </button>
                         ))}
                       </div>

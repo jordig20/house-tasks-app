@@ -31,27 +31,32 @@ export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
     status: getTaskStatus(task, todayKey),
   }));
   const completedCount = tasksWithTodayStatus.filter((task) => task.status === "done").length;
-  const progressWidth = tasksWithTodayStatus.length > 0 ? (completedCount / tasksWithTodayStatus.length) * 100 : 0;
+  const total = tasksWithTodayStatus.length;
+  const progressWidth = total > 0 ? (completedCount / total) * 100 : 0;
+  const showCalendarChip = new Set(tasks.map((task) => task.calendarName)).size > 1;
 
   return (
     <>
       <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
-        <p className="text-sm font-bold text-slate-500">Merged read-only Google Calendar events for today</p>
-        <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
+        <p className="text-sm font-bold text-slate-500">
+          Merged read-only Google Calendar events for today
+        </p>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full rounded-full bg-roof-800" style={{ width: `${progressWidth}%` }} />
         </div>
         <p className="mt-3 text-sm font-bold text-slate-700">
-          {completedCount} of {tasksWithTodayStatus.length} calendar tasks done
+          {completedCount} of {total} calendar tasks done
         </p>
       </section>
 
       <div className="space-y-4">
-        {tasksWithTodayStatus.length > 0 ? (
+        {total > 0 ? (
           tasksWithTodayStatus.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
               status={task.status}
+              showCalendarChip={showCalendarChip}
               onStatusChange={(selectedTask, status) =>
                 updateTaskStatus(selectedTask, status, todayKey)
               }

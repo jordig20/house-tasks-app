@@ -52,9 +52,6 @@ export function AppShell({
           </div>
         ) : needsLogin ? (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
-            <p className="text-4xl" aria-hidden="true">
-              👋
-            </p>
             <h2 className="mt-3 text-2xl font-black">Log in to continue</h2>
             <p className="mt-2 text-slate-600">
               Choose Admin or a calendar assignee and enter the matching PIN to
@@ -69,9 +66,6 @@ export function AppShell({
           </section>
         ) : isDenied ? (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
-            <p className="text-4xl" aria-hidden="true">
-              🔒
-            </p>
             <h2 className="mt-3 text-2xl font-black">Admin access only</h2>
             <p className="mt-2 text-slate-600">
               Log in as Admin to manage house members from calendar tasks.
@@ -87,7 +81,7 @@ export function AppShell({
           children
         )}
       </div>
-      <BottomNav />
+      <BottomNav user={user} />
     </main>
   );
 }

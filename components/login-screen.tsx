@@ -161,6 +161,7 @@ export function LoginScreen({
               maxLength={4}
               placeholder="••••"
               type="password"
+              autoComplete="one-time-code"
               value={pin}
               onChange={(event) => {
                 setPin(event.target.value);
