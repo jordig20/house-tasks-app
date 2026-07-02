@@ -11,6 +11,7 @@ function toLoggedInUser(user: HouseUser): LoggedInUser {
     id: user.id,
     name: user.name,
     role: user.role,
+    color: user.color,
   };
 }
 

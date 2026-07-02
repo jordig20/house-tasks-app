@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { LoggedInUser } from "@/lib/auth";
 import { clearLoggedInUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/brand-logo";
-import { UserAvatar } from "@/components/user-avatar";
+import { UserColorPicker } from "@/components/user-color-picker";
 
 const memberNavItems = [
   { href: "/today", label: "Today" },
@@ -20,7 +20,13 @@ const adminNavItems = [
   { href: "/admin/users", label: "Users" },
 ];
 
-export function AppHeader({ user }: { user: LoggedInUser | null }) {
+export function AppHeader({
+  user,
+  onUserChange,
+}: {
+  user: LoggedInUser | null;
+  onUserChange: (user: LoggedInUser) => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const navItems = user?.role === "admin" ? adminNavItems : memberNavItems;
@@ -57,7 +63,12 @@ export function AppHeader({ user }: { user: LoggedInUser | null }) {
               <p className="text-sm font-bold text-slate-950">{user.name}</p>
               <p className="text-xs capitalize text-slate-500">{user.role}</p>
             </div>
-            <UserAvatar user={user} size="sm" />
+            <UserColorPicker
+              user={user}
+              size="sm"
+              align="right"
+              onUserChange={onUserChange}
+            />
             <button onClick={signOut} className="rounded-full bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm">
               Log out
             </button>

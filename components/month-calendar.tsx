@@ -195,7 +195,7 @@ export function MonthCalendar({
             return (
               <div
                 key={dayKey}
-                className={`min-h-28 border-b border-r p-1.5 sm:min-h-36 sm:p-2 ${isToday ? "border-roof-600 bg-cream-50 ring-2 ring-inset ring-roof-800/25" : "border-slate-200"} ${isPastDay ? "bg-slate-50 text-slate-400" : isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
+                className={`min-h-24 border-b border-r border-slate-200 p-1.5 sm:min-h-36 sm:p-2 ${isToday ? "bg-cream-50" : isPastDay ? "bg-slate-50 text-slate-400" : isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
               >
                 <div className="mb-1 flex items-center justify-between">
                   <span
@@ -205,7 +205,7 @@ export function MonthCalendar({
                   </span>
                 </div>
 
-                <div className="space-y-1">
+                <div className="flex flex-wrap gap-1 sm:block sm:space-y-1">
                   {dayTasks.slice(0, 3).map((task) => {
                     const canUpdate =
                       !!user &&
@@ -220,7 +220,7 @@ export function MonthCalendar({
                       <button
                         key={`${dayKey}-${task.id}`}
                         type="button"
-                        className={`w-full rounded-md px-1.5 py-1 text-[0.68rem] font-bold ring-1 transition sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
+                        className={`inline-flex min-h-5 max-w-full items-center justify-center rounded-full px-1.5 py-0.5 text-[0.62rem] font-black ring-1 transition sm:w-full sm:rounded-md sm:px-1.5 sm:py-1 sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
                         title={
                           canUpdate
                             ? `${getTaskMonthLabel(task)} - click for ${statusLabels[nextStatus]}`

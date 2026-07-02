@@ -9,53 +9,73 @@ import {
 export const defaultMemberPin = "0000";
 export const userColorOptions = [
   {
-    id: "cream",
-    label: "Cream",
-    className: "bg-cream-100 text-roof-800 ring-cream-200",
+    id: "red",
+    label: "Red",
+    className: "bg-material-red-100 text-material-red-700 ring-material-red-500/30",
   },
   {
-    id: "roof",
-    label: "Roof",
-    className: "bg-roof-800 text-white ring-roof-800",
+    id: "pink",
+    label: "Pink",
+    className: "bg-material-pink-100 text-material-pink-700 ring-material-pink-500/30",
   },
   {
-    id: "olive",
-    label: "Olive",
-    className: "bg-olive-100 text-olive-700 ring-olive-600/20",
+    id: "purple",
+    label: "Purple",
+    className: "bg-material-purple-100 text-material-purple-700 ring-material-purple-500/30",
   },
   {
-    id: "sage",
-    label: "Sage",
-    className: "bg-sage-100 text-sage-700 ring-sage-500/20",
+    id: "indigo",
+    label: "Indigo",
+    className: "bg-material-indigo-100 text-material-indigo-700 ring-material-indigo-500/30",
   },
   {
-    id: "terracotta",
-    label: "Clay",
-    className: "bg-terracotta text-white ring-terracotta",
+    id: "blue",
+    label: "Blue",
+    className: "bg-material-blue-100 text-material-blue-700 ring-material-blue-500/30",
   },
   {
-    id: "coral",
-    label: "Coral",
-    className: "bg-coral text-roof-800 ring-coral",
+    id: "teal",
+    label: "Teal",
+    className: "bg-material-teal-100 text-material-teal-700 ring-material-teal-500/30",
   },
   {
-    id: "slate",
-    label: "Slate",
-    className: "bg-slate-100 text-slate-700 ring-slate-200",
+    id: "green",
+    label: "Green",
+    className: "bg-material-green-100 text-material-green-700 ring-material-green-500/30",
+  },
+  {
+    id: "amber",
+    label: "Amber",
+    className: "bg-material-amber-100 text-material-amber-700 ring-material-amber-500/30",
+  },
+  {
+    id: "orange",
+    label: "Orange",
+    className: "bg-material-orange-100 text-material-orange-700 ring-material-orange-500/30",
+  },
+  {
+    id: "brown",
+    label: "Brown",
+    className: "bg-material-brown-100 text-material-brown-700 ring-material-brown-500/30",
   },
 ] as const;
 
 export type UserColorId = (typeof userColorOptions)[number]["id"];
 
 export function getUserColorClass(color?: string, role?: HouseUser["role"]) {
+  const colorClass = userColorOptions.find(
+    (option) => option.id === color,
+  )?.className;
+
+  if (colorClass) {
+    return colorClass;
+  }
+
   if (role === "admin") {
     return "bg-roof-800 text-white ring-roof-800";
   }
 
-  return (
-    userColorOptions.find((option) => option.id === color)?.className ??
-    userColorOptions[0].className
-  );
+  return userColorOptions.find((option) => option.id === "blue")?.className ?? userColorOptions[0].className;
 }
 
 export function getAssigneeNamesFromTasks(
@@ -84,7 +104,7 @@ export function createUserFromName(name: string): HouseUser {
     name,
     role: "member",
     pin: defaultMemberPin,
-    color: "cream",
+    color: "blue",
   };
 }
 
@@ -182,7 +202,7 @@ export function getHouseUsers(tasks: Pick<CleaningTask, "assignedTo">[] = []) {
   const mergedUsers = mergeUsersWithTaskAssignees(baseUsers, tasks).map(
     (user) => ({
       ...user,
-      color: user.color ?? "cream",
+      color: user.color ?? (user.role === "admin" ? undefined : "blue"),
     }),
   );
 

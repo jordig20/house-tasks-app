@@ -35,7 +35,7 @@ export function AppShell({
 
   return (
     <main className="min-h-screen bg-cream-50 px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
-      <AppHeader user={user} />
+      <AppHeader user={user} onUserChange={setUser} />
       <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
         <header className="mb-6">
           <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">

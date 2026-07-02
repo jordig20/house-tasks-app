@@ -19,11 +19,6 @@ const dayFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
-const dailyStatusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-50 text-amber-900 ring-amber-200",
-  done: "bg-olive-100 text-olive-700 ring-olive-600/20",
-  skipped: "bg-slate-100 text-slate-500 ring-slate-200",
-};
 const dailyStatusButtonStyles: Record<TaskStatus, string> = {
   pending: "bg-amber-100 text-amber-900 ring-amber-200",
   done: "bg-olive-100 text-olive-700 ring-olive-600/20",
@@ -34,6 +29,11 @@ const dailyStatusLabels: Record<TaskStatus, string> = {
   pending: "Pend",
   done: "Done",
   skipped: "Skip",
+};
+const dailyNextStatus: Record<TaskStatus, TaskStatus> = {
+  pending: "done",
+  done: "skipped",
+  skipped: "pending",
 };
 
 function parseTaskDate(value: string) {
@@ -104,7 +104,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
               <p className="text-sm font-black uppercase tracking-[0.2em] text-cream-100">All week</p>
               <h2 className="mt-1 text-xl font-black">Weekly responsibilities</h2>
             </div>
-            <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-bold">{multiDayTasks.length} events</span>
+            <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-bold">{multiDayTasks.length} {multiDayTasks.length === 1 ? "event" : "events"}</span>
           </div>
           <div className="space-y-3">
             {multiDayTasks.map((task) => (
@@ -131,32 +131,24 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                           const dateKey = getLocalDateKey(day);
                           const status = getTaskStatus(task, dateKey);
                           const canUpdate = canUpdateTask(task, dateKey);
+                          const nextStatus = dailyNextStatus[status];
 
                           return (
-                            <div
+                            <button
                               key={dateKey}
+                              type="button"
+                              onClick={() => updateTaskStatus(task, nextStatus, dateKey)}
+                              disabled={!canUpdate}
                               title={!canUpdate ? getDisabledTitle(task, dateKey) : undefined}
-                              className={`rounded-xl p-2 text-xs font-black ring-1 ${dailyStatusStyles[status]} ${canUpdate ? "" : "opacity-55"}`}
+                              className={`flex flex-col items-center gap-1 rounded-xl p-2 text-xs font-black ring-1 transition disabled:cursor-not-allowed ${dailyStatusButtonStyles[status]} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "opacity-55"}`}
                             >
-                              <span className="block text-center">
+                              <span className="text-center">
                                 {dayFormatter.format(day)}
                               </span>
-                              <div className="mt-2 grid grid-cols-3 gap-1">
-                                {dailyStatusOptions.map((option) => (
-                                  <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() =>
-                                      updateTaskStatus(task, option, dateKey)
-                                    }
-                                    className={`rounded-lg px-1.5 py-1 text-[0.62rem] font-black capitalize ring-1 transition disabled:cursor-not-allowed ${status === option ? dailyStatusButtonStyles[option] : "bg-white/70 text-slate-500 ring-slate-200"} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : ""}`}
-                                    disabled={!canUpdate}
-                                  >
-                                    {dailyStatusLabels[option]}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                              <span className="text-[0.62rem] uppercase tracking-wide">
+                                {dailyStatusLabels[status]}
+                              </span>
+                            </button>
                           );
                         })}
                       </div>
@@ -180,7 +172,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
         <section key={day} className="rounded-[2rem] bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-black">{day}</h2>
-            <span className="text-sm font-bold text-slate-500">{dayTasks.length} events</span>
+            <span className="text-sm font-bold text-slate-500">{dayTasks.length} {dayTasks.length === 1 ? "event" : "events"}</span>
           </div>
           {dayTasks.length > 0 ? (
             <div className="space-y-3">
