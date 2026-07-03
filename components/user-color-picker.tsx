@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { UserAvatar } from "@/components/user-avatar";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import {
@@ -21,6 +21,8 @@ export function UserColorPicker({
   description,
   onUserChange,
   onUsersChange,
+  showPinForm = false,
+  onPinChange,
 }: {
   user: HouseUser | Pick<HouseUser, "id" | "name" | "role" | "color">;
   tasks?: Pick<CleaningTask, "assignedTo">[];
@@ -29,9 +31,17 @@ export function UserColorPicker({
   description?: string;
   onUserChange?: (user: Pick<HouseUser, "id" | "name" | "role" | "color">) => void;
   onUsersChange?: (users: HouseUser[]) => void;
+  showPinForm?: boolean;
+  onPinChange?: (pin: string) => Promise<void>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinMessage, setPinMessage] = useState("");
+
+  function isFourDigitPin(value: string) {
+    return /^\d{4}$/.test(value);
+  }
 
   async function handleColorChange(color: UserColorId) {
     setIsSaving(true);
@@ -56,6 +66,28 @@ export function UserColorPicker({
     }
   }
 
+  async function handlePinSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!isFourDigitPin(pin) || !onPinChange) {
+      setPinMessage("Enter a 4-digit PIN.");
+      return;
+    }
+
+    setIsSaving(true);
+    setPinMessage("");
+
+    try {
+      await onPinChange(pin);
+      setPin("");
+      setPinMessage("PIN updated.");
+    } catch (error) {
+      setPinMessage(error instanceof Error ? error.message : "PIN update failed.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="relative inline-flex">
       <button
@@ -71,7 +103,7 @@ export function UserColorPicker({
 
       {isOpen ? (
         <div
-          className={`absolute top-[calc(100%+0.75rem)] z-30 w-72 rounded-3xl border border-slate-200 bg-white p-3 text-left shadow-soft ${align === "right" ? "right-0" : "left-0"}`}
+          className={`absolute top-[calc(100%+0.75rem)] z-30 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-slate-200 bg-white p-3 text-left shadow-soft ${align === "right" ? "right-0" : "left-0"}`}
         >
           <p className="text-xs font-black uppercase tracking-wide text-slate-500">
             Color
@@ -100,6 +132,40 @@ export function UserColorPicker({
               );
             })}
           </div>
+
+          {showPinForm ? (
+            <form className="mt-4 border-t border-slate-100 pt-4" onSubmit={handlePinSubmit}>
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                PIN
+              </p>
+              <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+                <input
+                  className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-roof-600"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="0000"
+                  type="password"
+                  value={pin}
+                  onChange={(event) => {
+                    setPin(event.target.value.replace(/\D/g, ""));
+                    setPinMessage("");
+                  }}
+                />
+                <button
+                  className="rounded-full bg-roof-800 px-4 py-2 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!isFourDigitPin(pin) || isSaving}
+                  type="submit"
+                >
+                  Save
+                </button>
+              </div>
+              {pinMessage ? (
+                <p className="mt-2 text-xs font-bold text-slate-600">
+                  {pinMessage}
+                </p>
+              ) : null}
+            </form>
+          ) : null}
         </div>
       ) : null}
     </div>

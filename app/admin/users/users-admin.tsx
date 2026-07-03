@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState } from "react";
 import { UserColorPicker } from "@/components/user-color-picker";
-import { getLoggedInUser } from "@/lib/auth";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import { defaultMemberPin } from "@/lib/users";
 
@@ -10,10 +9,6 @@ type UsersResponse = {
   users?: HouseUser[];
   message?: string;
 };
-
-function isFourDigitPin(pin: string) {
-  return /^\d{4}$/.test(pin);
-}
 
 function getColorGroupNames(
   user: HouseUser,
@@ -41,16 +36,7 @@ export function UsersAdmin({
   tasks: Pick<CleaningTask, "assignedTo">[];
 }) {
   const [users, setUsers] = useState<HouseUser[]>(initialUsers);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [newPin, setNewPin] = useState("");
   const [message, setMessage] = useState("");
-  const currentUser = users.find((user) => user.id === currentUserId) ?? null;
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      setCurrentUserId(getLoggedInUser()?.id ?? null);
-    });
-  }, [tasks]);
 
   async function savePin(userId: string, pin: string) {
     const response = await fetch("/api/users", {
@@ -70,19 +56,6 @@ export function UsersAdmin({
   async function resetPin(user: HouseUser) {
     await savePin(user.id, defaultMemberPin);
     setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
-  }
-
-  async function handleChangeOwnPin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!currentUser || !isFourDigitPin(newPin)) {
-      setMessage("Enter a 4-digit PIN before saving.");
-      return;
-    }
-
-    await savePin(currentUser.id, newPin);
-    setMessage("Your PIN was updated.");
-    setNewPin("");
   }
 
   return (
@@ -128,27 +101,6 @@ export function UsersAdmin({
         ))}
       </div>
 
-      <section className="mt-5 rounded-[2rem] border-2 border-dashed border-cream-200 bg-white/70 p-5 shadow-sm">
-        <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">My PIN</p>
-        <h2 className="mt-2 text-xl font-black">Change your PIN</h2>
-        <form className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]" onSubmit={handleChangeOwnPin}>
-          <input
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 tracking-[0.4em] outline-none focus:border-roof-600"
-            inputMode="numeric"
-            maxLength={4}
-            placeholder="0000"
-            type="password"
-            value={newPin}
-            onChange={(event) => {
-              setNewPin(event.target.value.replace(/\D/g, ""));
-              setMessage("");
-            }}
-          />
-          <button className="rounded-full bg-olive-700 px-5 py-3 font-black text-white disabled:cursor-not-allowed disabled:opacity-50" disabled={!isFourDigitPin(newPin)} type="submit">
-            Save PIN
-          </button>
-        </form>
-      </section>
     </>
   );
 }

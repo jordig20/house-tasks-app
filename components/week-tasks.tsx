@@ -64,6 +64,29 @@ function getVisibleDays(task: CleaningTask) {
   return days;
 }
 
+function getDailyTaskSummaryStatus(
+  task: CleaningTask,
+  getTaskStatus: (task: CleaningTask, date?: string) => TaskStatus,
+) {
+  const visibleDays = getVisibleDays(task);
+  const statuses = visibleDays.map((day) =>
+    getTaskStatus(task, getLocalDateKey(day)),
+  );
+
+  if (statuses.length > 0 && statuses.every((status) => status === "done")) {
+    return "done";
+  }
+
+  if (
+    statuses.length > 0 &&
+    statuses.every((status) => status === "skipped")
+  ) {
+    return "skipped";
+  }
+
+  return "pending";
+}
+
 export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
   const { tasksWithStatus, getTaskStatus, updateTaskStatus } =
@@ -129,7 +152,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                     <StatusBadge
                       status={
                         task.completionMode === "daily"
-                          ? getTaskStatus(task)
+                          ? getDailyTaskSummaryStatus(task, getTaskStatus)
                           : task.status
                       }
                     />
