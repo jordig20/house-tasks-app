@@ -5,14 +5,17 @@ import { UserAvatar } from "@/components/user-avatar";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import {
   getUserColorClass,
-  updateUserColor,
   userColorOptions,
   type UserColorId,
 } from "@/lib/users";
 
+type UsersResponse = {
+  users?: HouseUser[];
+  message?: string;
+};
+
 export function UserColorPicker({
   user,
-  tasks = [],
   size = "md",
   align = "right",
   description,
@@ -28,13 +31,25 @@ export function UserColorPicker({
   onUsersChange?: (users: HouseUser[]) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  function handleColorChange(color: UserColorId) {
-    const nextUsers = updateUserColor(user.id, color, tasks);
+  async function handleColorChange(color: UserColorId) {
+    setIsSaving(true);
+    const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, color }),
+    });
+    const result = (await response.json()) as UsersResponse;
+    const nextUsers = result.users ?? [];
     const updatedUser = nextUsers.find((nextUser) => nextUser.id === user.id);
 
+    setIsSaving(false);
     setIsOpen(false);
-    onUsersChange?.(nextUsers);
+
+    if (response.ok && result.users) {
+      onUsersChange?.(result.users);
+    }
 
     if (updatedUser) {
       onUserChange?.(updatedUser);
@@ -76,6 +91,7 @@ export function UserColorPicker({
                   type="button"
                   className={`flex h-10 items-center justify-center rounded-full text-sm font-black ring-2 transition hover:scale-105 ${getUserColorClass(color.id, user.role)} ${isSelected ? "ring-roof-800" : "ring-transparent"}`}
                   onClick={() => handleColorChange(color.id)}
+                  disabled={isSaving}
                   aria-label={`Set color to ${color.label}`}
                   title={color.label}
                 >

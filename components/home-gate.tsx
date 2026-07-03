@@ -4,9 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LoginScreen } from "@/components/login-screen";
 import { getLoggedInUser } from "@/lib/auth";
-import type { CleaningTask } from "@/lib/tasks";
+import type { HouseUser } from "@/lib/tasks";
 
-export function HomeGate({ tasks }: { tasks: CleaningTask[] }) {
+export function HomeGate({
+  users,
+}: {
+  users: HouseUser[];
+}) {
   const router = useRouter();
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
@@ -29,5 +33,5 @@ export function HomeGate({ tasks }: { tasks: CleaningTask[] }) {
     );
   }
 
-  return <LoginScreen tasks={tasks} />;
+  return <LoginScreen users={users} />;
 }

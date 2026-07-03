@@ -1,12 +1,10 @@
 import { HomeGate } from "@/components/home-gate";
-import { getStoredCalendarTasks } from "@/lib/calendar-task-store";
-import { getMonthRange } from "@/lib/google-calendar";
+import { getStoredHouseUsers } from "@/lib/user-store";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { start, end } = getMonthRange();
-  const calendarTasks = await getStoredCalendarTasks(start, end);
+  const users = await getStoredHouseUsers();
 
-  return <HomeGate tasks={calendarTasks.tasks} />;
+  return <HomeGate users={users} />;
 }

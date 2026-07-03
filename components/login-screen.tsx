@@ -5,24 +5,22 @@ import { useEffect, useState, type FormEvent } from "react";
 import {
   getLoggedInUser,
   saveLoggedInUser,
-  validateLocalLogin,
 } from "@/lib/auth";
-import { storageKeys, type CleaningTask, type HouseUser } from "@/lib/tasks";
-import { getHouseUsers, getInitialHouseUsers } from "@/lib/users";
+import { storageKeys, type HouseUser } from "@/lib/tasks";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 
-export function LoginScreen({
-  tasks = [],
-}: {
-  tasks?: Pick<CleaningTask, "assignedTo">[];
-}) {
+type LoginResponse = {
+  user?: Omit<HouseUser, "pin">;
+  message?: string;
+};
+
+export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
   const router = useRouter();
-  const [users, setUsers] = useState<HouseUser[]>(() =>
-    getInitialHouseUsers(tasks),
-  );
+  const [users] = useState<HouseUser[]>(initialUsers);
   const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
   const [isUserPickerOpen, setIsUserPickerOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [storedUserName, setStoredUserName] = useState<string | null>(null);
@@ -31,27 +29,34 @@ export function LoginScreen({
 
   useEffect(() => {
     queueMicrotask(() => {
-      const nextUsers = getHouseUsers(tasks);
-      setUsers(nextUsers);
       setSelectedUserId(
-        (currentUserId) => currentUserId || (nextUsers[0]?.id ?? ""),
+        (currentUserId) => currentUserId || (users[0]?.id ?? ""),
       );
       setStoredUserName(getLoggedInUser()?.name ?? null);
     });
-  }, [tasks]);
+  }, [users]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const loggedInUser = validateLocalLogin(selectedUserId, pin);
+    setIsSubmitting(true);
+    setError("");
 
-    if (!loggedInUser) {
-      setError("That PIN does not match the selected user.");
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: selectedUserId, pin }),
+    });
+    const result = (await response.json()) as LoginResponse;
+
+    if (!response.ok || !result.user) {
+      setError(result.message ?? "That PIN does not match the selected user.");
       setPin("");
+      setIsSubmitting(false);
       return;
     }
 
-    saveLoggedInUser(loggedInUser);
-    setStoredUserName(loggedInUser.name);
+    saveLoggedInUser(result.user);
+    setStoredUserName(result.user.name);
     router.push("/today");
   }
 
@@ -176,9 +181,9 @@ export function LoginScreen({
           <button
             className="w-full rounded-full bg-roof-800 px-5 py-3 text-center font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
             type="submit"
-            disabled={pin.length !== 4}
+            disabled={pin.length !== 4 || isSubmitting}
           >
-            Continue
+            {isSubmitting ? "Entering..." : "Continue"}
           </button>
         </form>
       </section>

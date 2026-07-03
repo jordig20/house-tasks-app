@@ -3,7 +3,14 @@ import "server-only";
 import { sql } from "@/lib/db";
 import { getBanffDateKey, getBanffMonthRange } from "@/lib/banff-time";
 import type { CalendarTaskResult } from "@/lib/google-calendar";
-import type { CleaningTask, TaskCompletionMode, TaskKind } from "@/lib/tasks";
+import {
+  adminUser,
+  getUserIdFromName,
+  type CleaningTask,
+  type TaskCompletionMode,
+  type TaskKind,
+} from "@/lib/tasks";
+import { defaultMemberPin } from "@/lib/users";
 
 type CalendarTaskRow = {
   id: string;
@@ -110,14 +117,43 @@ export async function ensureCalendarTables() {
       day_name text not null,
       status text not null default 'pending',
       duration_minutes integer not null default 0,
+      deleted_at timestamptz,
       synced_at timestamptz not null default now()
     )
+  `;
+  await sql`
+    alter table calendar_tasks
+    add column if not exists deleted_at timestamptz
   `;
   await sql`
     create table if not exists calendar_syncs (
       id text primary key,
       synced_at timestamptz not null default now(),
       task_count integer not null default 0
+    )
+  `;
+  await sql`
+    create table if not exists house_users (
+      id text primary key,
+      name text not null,
+      normalized_name text unique not null,
+      role text not null default 'member',
+      pin text not null default '0000',
+      color text,
+      source text not null default 'calendar',
+      is_active boolean not null default true,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    )
+  `;
+  await sql`
+    create table if not exists task_statuses (
+      completion_key text primary key,
+      task_id text not null,
+      date_key text not null,
+      status text not null,
+      updated_by text,
+      updated_at timestamptz not null default now()
     )
   `;
   await sql`
@@ -128,13 +164,70 @@ export async function ensureCalendarTables() {
   didEnsureTables = true;
 }
 
+async function ensureCalendarUsers(tasks: CleaningTask[]) {
+  if (!sql) {
+    return;
+  }
+
+  await sql`
+    insert into house_users (id, name, normalized_name, role, pin, color, source)
+    values (
+      ${adminUser.id},
+      ${adminUser.name},
+      ${adminUser.name.toLowerCase()},
+      ${adminUser.role},
+      ${adminUser.pin},
+      ${null},
+      'manual'
+    )
+    on conflict do nothing
+  `;
+
+  const names = new Map<string, string>();
+
+  tasks.forEach((task) => {
+    task.assignedTo.forEach((name) => {
+      const trimmedName = name.trim();
+
+      if (trimmedName) {
+        names.set(trimmedName.toLowerCase(), trimmedName);
+      }
+    });
+  });
+
+  for (const name of names.values()) {
+    await sql`
+      insert into house_users (id, name, normalized_name, role, pin, color, source)
+      values (
+        ${getUserIdFromName(name)},
+        ${name},
+        ${name.toLowerCase()},
+        'member',
+        ${defaultMemberPin},
+        'blue',
+        'calendar'
+      )
+      on conflict do nothing
+    `;
+  }
+}
+
 export async function replaceStoredCalendarTasks(tasks: CleaningTask[]) {
   if (!sql) {
     throw new Error("DATABASE_URL is not configured.");
   }
 
   await ensureCalendarTables();
-  await sql`delete from calendar_tasks`;
+  await ensureCalendarUsers(tasks);
+
+  const syncRange = getBanffMonthRange();
+  const { startKey, endKey } = getRangeKeys(syncRange.start, syncRange.end);
+
+  await sql`
+    update calendar_tasks
+    set deleted_at = now()
+    where date_key <= ${endKey} and visible_end_key >= ${startKey}
+  `;
 
   for (const task of tasks) {
     await sql`
@@ -206,6 +299,7 @@ export async function replaceStoredCalendarTasks(tasks: CleaningTask[]) {
         day_name = excluded.day_name,
         status = excluded.status,
         duration_minutes = excluded.duration_minutes,
+        deleted_at = null,
         synced_at = now()
     `;
   }
@@ -240,6 +334,7 @@ export async function getStoredCalendarTasks(
   const rows = (await sql`
     select * from calendar_tasks
     where date_key <= ${endKey} and visible_end_key >= ${startKey}
+      and deleted_at is null
     order by start_value asc
   `) as CalendarTaskRow[];
   const warnings =

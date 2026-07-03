@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { LoggedInUser } from "@/lib/auth";
-import { clearLoggedInUser } from "@/lib/auth";
+import { clearLoggedInUser, saveLoggedInUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserColorPicker } from "@/components/user-color-picker";
 
@@ -34,6 +34,11 @@ export function AppHeader({
   function signOut() {
     clearLoggedInUser();
     router.push("/login");
+  }
+
+  function updateCurrentUser(nextUser: LoggedInUser) {
+    saveLoggedInUser(nextUser);
+    onUserChange(nextUser);
   }
 
   return (
@@ -67,7 +72,7 @@ export function AppHeader({
               user={user}
               size="sm"
               align="right"
-              onUserChange={onUserChange}
+              onUserChange={updateCurrentUser}
             />
             <button onClick={signOut} className="rounded-full bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm">
               Log out

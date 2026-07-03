@@ -2,28 +2,8 @@
 
 import type { HouseUser } from "@/lib/tasks";
 import { storageKeys } from "@/lib/tasks";
-import { getHouseUsers } from "@/lib/users";
 
 export type LoggedInUser = Omit<HouseUser, "pin">;
-
-function toLoggedInUser(user: HouseUser): LoggedInUser {
-  return {
-    id: user.id,
-    name: user.name,
-    role: user.role,
-    color: user.color,
-  };
-}
-
-export function validateLocalLogin(userId: string, pin: string) {
-  const user = getHouseUsers().find((candidate) => candidate.id === userId);
-
-  if (!user || user.pin !== pin) {
-    return null;
-  }
-
-  return toLoggedInUser(user);
-}
 
 export function saveLoggedInUser(user: LoggedInUser) {
   window.localStorage.setItem(storageKeys.currentUser, JSON.stringify(user));

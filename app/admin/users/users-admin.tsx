@@ -4,12 +4,12 @@ import { useEffect, useState, type FormEvent } from "react";
 import { UserColorPicker } from "@/components/user-color-picker";
 import { getLoggedInUser } from "@/lib/auth";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
-import {
-  defaultMemberPin,
-  getHouseUsers,
-  getInitialHouseUsers,
-  updateUserPin,
-} from "@/lib/users";
+import { defaultMemberPin } from "@/lib/users";
+
+type UsersResponse = {
+  users?: HouseUser[];
+  message?: string;
+};
 
 function isFourDigitPin(pin: string) {
   return /^\d{4}$/.test(pin);
@@ -33,10 +33,14 @@ function getColorGroupNames(
   return pairTask?.assignedTo ?? [user.name];
 }
 
-export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[] }) {
-  const [users, setUsers] = useState<HouseUser[]>(() =>
-    getInitialHouseUsers(tasks),
-  );
+export function UsersAdmin({
+  initialUsers,
+  tasks,
+}: {
+  initialUsers: HouseUser[];
+  tasks: Pick<CleaningTask, "assignedTo">[];
+}) {
+  const [users, setUsers] = useState<HouseUser[]>(initialUsers);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [newPin, setNewPin] = useState("");
   const [message, setMessage] = useState("");
@@ -44,17 +48,31 @@ export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[
 
   useEffect(() => {
     queueMicrotask(() => {
-      setUsers(getHouseUsers(tasks));
       setCurrentUserId(getLoggedInUser()?.id ?? null);
     });
   }, [tasks]);
 
-  function resetPin(user: HouseUser) {
-    setUsers(updateUserPin(user.id, defaultMemberPin, tasks));
+  async function savePin(userId: string, pin: string) {
+    const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, pin }),
+    });
+    const result = (await response.json()) as UsersResponse;
+
+    if (!response.ok || !result.users) {
+      throw new Error(result.message ?? "PIN update failed.");
+    }
+
+    setUsers(result.users);
+  }
+
+  async function resetPin(user: HouseUser) {
+    await savePin(user.id, defaultMemberPin);
     setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
   }
 
-  function handleChangeOwnPin(event: FormEvent<HTMLFormElement>) {
+  async function handleChangeOwnPin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!currentUser || !isFourDigitPin(newPin)) {
@@ -62,7 +80,7 @@ export function UsersAdmin({ tasks }: { tasks: Pick<CleaningTask, "assignedTo">[
       return;
     }
 
-    setUsers(updateUserPin(currentUser.id, newPin, tasks));
+    await savePin(currentUser.id, newPin);
     setMessage("Your PIN was updated.");
     setNewPin("");
   }
