@@ -31,7 +31,7 @@ export default async function TodayPage() {
       eyebrow={
         calendarTasks.isConfiguredFallback
           ? "Calendar sync needed"
-          : "Google Calendar"
+          : "House tasks"
       }
       title="Today at 540A"
     >

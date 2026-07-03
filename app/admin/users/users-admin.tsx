@@ -77,7 +77,6 @@ export function UsersAdmin({
                 user={user}
                 tasks={tasks}
                 size="lg"
-                align="left"
                 description={`Applies to ${getColorGroupNames(user, tasks).join(" & ")}.`}
                 onUsersChange={(nextUsers) => {
                   setUsers(nextUsers);

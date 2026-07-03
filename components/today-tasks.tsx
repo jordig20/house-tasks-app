@@ -159,7 +159,7 @@ export function TodayTasks({
 
       <section className="mb-5 rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
         <p className="text-sm font-bold text-slate-500">
-          Merged read-only Google Calendar events for today
+          {user?.role === "admin" ? "Synced calendar tasks for today" : "Today progress"}
         </p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full rounded-full bg-cyan-500" style={{ width: `${progressWidth}%` }} />

@@ -92,7 +92,6 @@ export function AppHeader({
             <UserColorPicker
               user={user}
               size="sm"
-              align="right"
               onUserChange={updateCurrentUser}
               showPinForm
               onPinChange={updateCurrentUserPin}

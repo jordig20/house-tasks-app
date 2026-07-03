@@ -74,6 +74,42 @@ export function AppShell({
         ) : (
           children
         )}
+
+        <footer className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs font-bold text-slate-400">
+          <span>Developed by</span>
+          <a
+            href="https://jordi.is-a.dev"
+            className="text-slate-600 underline decoration-slate-300 underline-offset-4 transition hover:text-slate-950"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Jordi
+          </a>
+          <span>with</span>
+          <span className="text-rose-500" aria-label="love">♥</span>
+          <span>at the mountains</span>
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4 text-slate-500"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="m3 18 5.5-8 3.5 5 3-4 6 7H3Z"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+            <path
+              d="m8.5 10 1.8 2.2 1.7-2.2M15 11l1.5 1.8 1.4-1.6"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.6"
+            />
+          </svg>
+        </footer>
       </div>
       <BottomNav user={user} />
     </main>

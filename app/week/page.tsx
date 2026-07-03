@@ -26,7 +26,7 @@ export default async function WeekPage() {
         eyebrow={
           calendarTasks.isConfiguredFallback
             ? "Calendar sync needed"
-            : "Google Calendar"
+            : "Weekly plan"
         }
       title="540A weekly plan"
     >

@@ -20,9 +20,9 @@ const dayFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 const dailyStatusButtonStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-100 text-amber-900 ring-amber-200",
-  done: "bg-emerald-100 text-emerald-800 ring-emerald-200",
-  skipped: "bg-slate-100 text-slate-600 ring-slate-200",
+  pending: "bg-amber-500 text-white ring-amber-600",
+  done: "bg-emerald-600 text-white ring-emerald-700",
+  skipped: "bg-slate-700 text-white ring-slate-800",
 };
 const dailyStatusOptions: TaskStatus[] = ["pending", "done", "skipped"];
 const dailyStatusLabels: Record<TaskStatus, string> = {

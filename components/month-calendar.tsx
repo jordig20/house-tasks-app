@@ -18,14 +18,14 @@ const monthFormatter = new Intl.DateTimeFormat("en-US", {
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const statusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-100 text-amber-950 ring-amber-200",
-  done: "bg-emerald-100 text-emerald-800 ring-emerald-200 line-through",
-  skipped: "bg-slate-100 text-slate-500 ring-slate-200",
+  pending: "bg-amber-500 text-white ring-amber-600",
+  done: "bg-emerald-600 text-white ring-emerald-700 line-through",
+  skipped: "bg-slate-700 text-white ring-slate-800",
 };
 const pastStatusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-50 text-amber-800/70 ring-amber-200/70",
-  done: "bg-emerald-50 text-emerald-800/70 ring-emerald-200/60 line-through",
-  skipped: "bg-slate-100 text-slate-500/70 ring-slate-200",
+  pending: "bg-amber-200/80 text-amber-950/80 ring-amber-300/80",
+  done: "bg-emerald-200/80 text-emerald-950/80 ring-emerald-300/80 line-through",
+  skipped: "bg-slate-300/80 text-slate-700/80 ring-slate-300",
 };
 const nextStatuses: Record<TaskStatus, TaskStatus> = {
   pending: "done",
@@ -212,13 +212,13 @@ export function MonthCalendar({
             </h2>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-black">
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900">
+            <span className="rounded-full bg-amber-500 px-3 py-1 text-white">
               {pendingCount} pending
             </span>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">
+            <span className="rounded-full bg-emerald-600 px-3 py-1 text-white">
               {completedCount} done
             </span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+            <span className="rounded-full bg-slate-700 px-3 py-1 text-white">
               {skippedCount} skipped
             </span>
           </div>

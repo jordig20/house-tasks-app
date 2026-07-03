@@ -26,7 +26,7 @@ export default async function MonthPage() {
         eyebrow={
           calendarTasks.isConfiguredFallback
             ? "Calendar sync needed"
-            : "Google Calendar"
+            : "Monthly view"
         }
       title="540A monthly calendar"
       wide
