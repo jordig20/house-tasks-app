@@ -34,7 +34,7 @@ export function BottomNav({ user }: { user: LoggedInUser | null }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-2xl px-2 py-2 text-center text-xs font-bold ${isActive ? "bg-slate-950 text-white" : "text-slate-500"}`}
+              className={`rounded-2xl px-2 py-2 text-center font-ui text-xs font-bold ${isActive ? "bg-slate-950 text-white" : "text-slate-500"}`}
             >
               <span
                 className={`mx-auto mb-1 block h-1.5 w-6 rounded-full ${isActive ? userColor || "bg-cyan-300" : "bg-slate-200"}`}

@@ -124,10 +124,10 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
         <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 text-slate-950 shadow-sm backdrop-blur">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-700">All week</p>
-              <h2 className="mt-1 text-xl font-black">Weekly responsibilities</h2>
+              <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">All week</p>
+              <h2 className="mt-1 font-display text-xl font-bold">Weekly responsibilities</h2>
             </div>
-            <span className="rounded-full bg-slate-950 px-3 py-1 text-sm font-bold text-white">{multiDayTasks.length} {multiDayTasks.length === 1 ? "event" : "events"}</span>
+            <span className="rounded-full bg-slate-950 px-3 py-1 font-ui text-sm font-bold text-white">{multiDayTasks.length} {multiDayTasks.length === 1 ? "event" : "events"}</span>
           </div>
           <div className="space-y-3">
             {multiDayTasks.map((task) => (
@@ -136,9 +136,9 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-black text-slate-950">{task.title}</h3>
+                        <h3 className="font-display font-bold text-slate-950">{task.title}</h3>
                         {showCalendarChip ? (
-                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
+                          <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
                             {task.calendarName}
                           </span>
                         ) : null}
@@ -160,7 +160,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
 
                   {task.completionMode === "daily" ? (
                     <div>
-                      <p className="mb-2 text-[0.68rem] font-black uppercase tracking-wide text-slate-400">
+                      <p className="mb-2 font-ui text-[0.68rem] font-black uppercase tracking-wide text-slate-400">
                         Mark each day separately
                       </p>
                       <div className="grid grid-cols-7 gap-1 sm:gap-2">
@@ -177,7 +177,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                               onClick={() => updateTaskStatus(task, nextStatus, dateKey)}
                               disabled={!canUpdate}
                               title={!canUpdate ? getDisabledTitle(task, dateKey) : undefined}
-                              className={`flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[0.58rem] font-black ring-1 transition disabled:cursor-not-allowed sm:gap-1 sm:rounded-xl sm:p-2 sm:text-xs ${dailyStatusButtonStyles[status]} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "opacity-55"}`}
+                              className={`flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 font-ui text-[0.58rem] font-black ring-1 transition disabled:cursor-not-allowed sm:gap-1 sm:rounded-xl sm:p-2 sm:text-xs ${dailyStatusButtonStyles[status]} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "opacity-55"}`}
                             >
                               <span className="truncate text-center leading-tight">
                                 {dayFormatter.format(day)}
@@ -201,7 +201,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
       {Object.entries(groupedTasks).map(([day, dayTasks]) => (
         <section key={day} className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-black">{day}</h2>
+            <h2 className="font-display text-xl font-bold">{day}</h2>
             <span className="text-sm font-bold text-slate-500">{dayTasks.length} {dayTasks.length === 1 ? "event" : "events"}</span>
           </div>
           {dayTasks.length > 0 ? (
@@ -211,9 +211,9 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-black text-slate-950">{task.title}</h3>
+                        <h3 className="font-display font-bold text-slate-950">{task.title}</h3>
                         {showCalendarChip ? (
-                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
+                          <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
                             {task.calendarName}
                           </span>
                         ) : null}
@@ -234,7 +234,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                             key={option}
                             type="button"
                             onClick={() => updateTaskStatus(task, option)}
-                            className={`rounded-xl px-3 py-2 text-xs font-black capitalize ring-1 transition disabled:cursor-not-allowed disabled:opacity-55 ${task.status === option ? dailyStatusButtonStyles[option] : "bg-white/80 text-slate-500 ring-slate-200"} ${canUpdateTask(task, task.date) ? "hover:-translate-y-0.5 hover:shadow-sm" : ""}`}
+                            className={`rounded-xl px-3 py-2 font-ui text-xs font-black capitalize ring-1 transition disabled:cursor-not-allowed disabled:opacity-55 ${task.status === option ? dailyStatusButtonStyles[option] : "bg-white/80 text-slate-500 ring-slate-200"} ${canUpdateTask(task, task.date) ? "hover:-translate-y-0.5 hover:shadow-sm" : ""}`}
                             disabled={!canUpdateTask(task, task.date)}
                           >
                             {dailyStatusLabels[option]}

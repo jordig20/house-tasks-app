@@ -75,7 +75,7 @@ export function AppHeader({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-full px-3 py-2 text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
+                  className={`rounded-full px-3 py-2 font-ui text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
                 >
                   {item.label}
                 </Link>
@@ -86,8 +86,8 @@ export function AppHeader({
         {user ? (
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-bold text-slate-950">{user.name}</p>
-              <p className="text-xs capitalize text-slate-500">{user.role}</p>
+              <p className="font-ui text-sm font-bold text-slate-950">{user.name}</p>
+              <p className="font-ui text-xs capitalize text-slate-500">{user.role}</p>
             </div>
             <UserColorPicker
               user={user}
@@ -96,12 +96,12 @@ export function AppHeader({
               showPinForm
               onPinChange={updateCurrentUserPin}
             />
-            <button onClick={signOut} className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-xs font-bold text-slate-600 shadow-sm transition hover:text-slate-950">
+            <button onClick={signOut} className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 font-ui text-xs font-bold text-slate-600 shadow-sm transition hover:text-slate-950">
               Log out
             </button>
           </div>
         ) : (
-          <Link href="/login" className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm">Log in</Link>
+          <Link href="/login" className="rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-bold text-white shadow-sm">Log in</Link>
         )}
       </div>
     </header>

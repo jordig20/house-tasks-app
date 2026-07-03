@@ -4,6 +4,11 @@ const config: Config = {
   content: ["./app/**/*.{js,ts,jsx,tsx,mdx}", "./components/**/*.{js,ts,jsx,tsx,mdx}", "./lib/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui"],
+        display: ["var(--font-josefin)", "var(--font-inter)", "sans-serif"],
+        ui: ["var(--font-roboto)", "var(--font-inter)", "sans-serif"],
+      },
       colors: {
         sage: {
           50: "#f5f8f3",

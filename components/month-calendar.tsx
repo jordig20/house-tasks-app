@@ -18,14 +18,14 @@ const monthFormatter = new Intl.DateTimeFormat("en-US", {
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const statusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-500 text-white ring-amber-600",
-  done: "bg-emerald-600 text-white ring-emerald-700 line-through",
-  skipped: "bg-slate-700 text-white ring-slate-800",
+  pending: "bg-amber-200 text-amber-950 ring-amber-300",
+  done: "bg-emerald-200 text-emerald-950 ring-emerald-300 line-through",
+  skipped: "bg-slate-300 text-slate-900 ring-slate-400",
 };
 const pastStatusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-200/80 text-amber-950/80 ring-amber-300/80",
-  done: "bg-emerald-200/80 text-emerald-950/80 ring-emerald-300/80 line-through",
-  skipped: "bg-slate-300/80 text-slate-700/80 ring-slate-300",
+  pending: "bg-amber-100/80 text-amber-900/75 ring-amber-200/75",
+  done: "bg-emerald-100/80 text-emerald-900/75 ring-emerald-200/75 line-through",
+  skipped: "bg-slate-200/80 text-slate-700/75 ring-slate-300/75",
 };
 const nextStatuses: Record<TaskStatus, TaskStatus> = {
   pending: "done",
@@ -204,14 +204,14 @@ export function MonthCalendar({
       <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-cyan-700">
+            <p className="font-ui text-sm font-bold uppercase tracking-[0.18em] text-cyan-700">
               Month view
             </p>
-            <h2 className="mt-1 text-2xl font-black text-slate-950">
+            <h2 className="mt-1 font-display text-2xl font-bold text-slate-950">
               {monthFormatter.format(parseTaskDate(monthStart))}
             </h2>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs font-black">
+          <div className="flex flex-wrap gap-2 font-ui text-xs font-black">
             <span className="rounded-full bg-amber-500 px-3 py-1 text-white">
               {pendingCount} pending
             </span>
@@ -226,7 +226,7 @@ export function MonthCalendar({
       </section>
 
       <section className="overflow-hidden rounded-[2rem] bg-white/95 shadow-sm ring-1 ring-slate-200 backdrop-blur">
-        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-[0.68rem] font-black uppercase tracking-wide text-slate-500 sm:text-xs">
+        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center font-ui text-[0.68rem] font-black uppercase tracking-wide text-slate-500 sm:text-xs">
           {weekdayLabels.map((day) => (
             <div key={day} className="px-1 py-3">
               {day}
@@ -280,7 +280,7 @@ export function MonthCalendar({
                       <button
                         key={`${dayKey}-${task.id}`}
                         type="button"
-                        className={`inline-flex min-h-5 max-w-full items-center justify-center rounded-full px-1.5 py-0.5 text-[0.62rem] font-black ring-1 transition sm:w-full sm:rounded-md sm:px-1.5 sm:py-1 sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
+                        className={`inline-flex min-h-5 max-w-full items-center justify-center rounded-full px-1.5 py-0.5 font-ui text-[0.62rem] font-black ring-1 transition sm:w-full sm:rounded-md sm:px-1.5 sm:py-1 sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
                         title={
                           canUpdate
                             ? `${getTaskMonthLabel(task)} - click for ${statusLabels[nextStatus]}`
@@ -306,7 +306,7 @@ export function MonthCalendar({
                     );
                   })}
                   {dayTasks.length > 3 ? (
-                    <p className="px-1 text-[0.68rem] font-black text-slate-500">
+                    <p className="px-1 font-ui text-[0.68rem] font-black text-slate-500">
                       +{dayTasks.length - 3} more
                     </p>
                   ) : null}
@@ -319,7 +319,7 @@ export function MonthCalendar({
 
       {tasks.length === 0 ? (
         <section className="rounded-[2rem] bg-white p-6 text-center shadow-sm">
-          <h2 className="text-xl font-black">No calendar tasks this month</h2>
+          <h2 className="font-display text-xl font-bold">No calendar tasks this month</h2>
           <p className="mt-2 text-slate-600">
             Shared calendar events will appear here when scheduled.
           </p>

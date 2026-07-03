@@ -133,13 +133,13 @@ export function TodayTasks({
   return (
     <>
       <section className="mb-5 overflow-hidden rounded-[2rem] bg-slate-950 p-5 text-white shadow-[0_22px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">
+        <p className="font-ui text-xs font-black uppercase tracking-[0.22em] text-cyan-200">
           Your next task
         </p>
         {nextTask ? (
           <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-black leading-tight">
+              <h2 className="font-display text-2xl font-bold leading-tight">
                 {nextTask.title}
               </h2>
               <p className="mt-1 text-sm font-bold text-slate-300">
@@ -148,17 +148,17 @@ export function TodayTasks({
                   : "Unassigned"}
               </p>
             </div>
-            <span className="rounded-full bg-cyan-300 px-3 py-1 text-sm font-black text-slate-950">
+            <span className="rounded-full bg-cyan-300 px-3 py-1 font-ui text-sm font-black text-slate-950">
               Up next
             </span>
           </div>
         ) : (
-          <p className="mt-3 text-xl font-black">All caught up for today.</p>
+          <p className="mt-3 font-display text-xl font-bold">All caught up for today.</p>
         )}
       </section>
 
       <section className="mb-5 rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
-        <p className="text-sm font-bold text-slate-500">
+        <p className="font-ui text-sm font-bold text-slate-500">
           {user?.role === "admin" ? "Synced calendar tasks for today" : "Today progress"}
         </p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -184,7 +184,7 @@ export function TodayTasks({
           ))
         ) : (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-sm">
-            <h2 className="text-xl font-black">No calendar tasks today</h2>
+          <h2 className="font-display text-xl font-bold">No calendar tasks today</h2>
             <p className="mt-2 text-slate-600">Shared calendar events will appear here when scheduled.</p>
           </section>
         )}

@@ -38,10 +38,10 @@ export function AppShell({
       <AppHeader user={user} onUserChange={setUser} />
       <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
         <header className="mb-6">
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-700">
+          <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">
             {eyebrow}
           </p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
             {title}
           </h1>
         </header>
@@ -52,7 +52,7 @@ export function AppShell({
           </div>
         ) : needsLogin ? (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
-            <h2 className="mt-3 text-2xl font-black">Log in to continue</h2>
+            <h2 className="mt-3 font-display text-2xl font-bold">Log in to continue</h2>
             <p className="mt-2 text-slate-600">
               Choose Admin or a calendar assignee and enter the matching PIN to
               create a local session.
@@ -63,7 +63,7 @@ export function AppShell({
           </section>
         ) : isDenied ? (
           <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
-            <h2 className="mt-3 text-2xl font-black">Admin access only</h2>
+            <h2 className="mt-3 font-display text-2xl font-bold">Admin access only</h2>
             <p className="mt-2 text-slate-600">
               Log in as Admin to manage house members from calendar tasks.
             </p>
@@ -75,7 +75,7 @@ export function AppShell({
           children
         )}
 
-        <footer className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs font-bold text-slate-400">
+        <footer className="mt-10 flex items-center justify-center gap-1.5 text-center font-ui text-xs font-bold text-slate-400">
           <span>Developed by</span>
           <a
             href="https://jordi.is-a.dev"

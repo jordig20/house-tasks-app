@@ -61,7 +61,7 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
 
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="text-sm font-bold text-slate-700">
+            <label className="font-ui text-sm font-bold text-slate-700">
               Account
             </label>
             <button
@@ -74,10 +74,10 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
                 <span className="flex min-w-0 items-center gap-3">
                   <UserAvatar user={selectedUser} />
                   <span className="min-w-0">
-                    <span className="block truncate text-lg font-black">
+                    <span className="block truncate font-display text-lg font-bold">
                       {selectedUser.name}
                     </span>
-                    <span className="block text-sm capitalize text-slate-500">
+                    <span className="block font-ui text-sm capitalize text-slate-500">
                       {selectedUser.role} · PIN required
                     </span>
                   </span>
@@ -117,15 +117,15 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
                     />
                     <UserAvatar user={user} size="sm" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-black">
+                      <span className="block truncate font-display font-bold">
                         {user.name}
                       </span>
-                      <span className="block text-xs capitalize text-slate-500">
+                      <span className="block font-ui text-xs capitalize text-slate-500">
                         {user.role} · PIN required
                       </span>
                     </span>
                     {selectedUserId === user.id ? (
-                      <span className="rounded-full bg-slate-950 px-2 py-1 text-xs font-black text-white">
+                      <span className="rounded-full bg-slate-950 px-2 py-1 font-ui text-xs font-black text-white">
                         Selected
                       </span>
                     ) : null}
@@ -136,7 +136,7 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
           </div>
 
           <div>
-            <label htmlFor="pin" className="text-sm font-bold text-slate-700">
+            <label htmlFor="pin" className="font-ui text-sm font-bold text-slate-700">
               PIN
             </label>
             <input
@@ -159,7 +159,7 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
           </div>
 
           <button
-            className="w-full rounded-full bg-slate-950 px-5 py-3 text-center font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            className="w-full rounded-full bg-slate-950 px-5 py-3 text-center font-ui font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
             type="submit"
             disabled={pin.length !== 4 || isSubmitting}
           >

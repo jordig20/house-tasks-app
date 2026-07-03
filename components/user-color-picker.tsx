@@ -112,17 +112,17 @@ export function UserColorPicker({
               <div className="flex min-w-0 items-center gap-3">
                 <UserAvatar user={user} size="lg" />
                 <div className="min-w-0">
-                  <h2 className="truncate text-xl font-black text-slate-950">
+                  <h2 className="truncate font-display text-xl font-bold text-slate-950">
                     {user.name}
                   </h2>
-                  <p className="text-sm font-bold capitalize text-slate-500">
+                  <p className="font-ui text-sm font-bold capitalize text-slate-500">
                     {user.role}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+                className="rounded-full bg-slate-100 px-3 py-2 font-ui text-xs font-black text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
                 onClick={() => setIsOpen(false)}
               >
                 Close
@@ -130,7 +130,7 @@ export function UserColorPicker({
             </div>
 
             <div className="mt-5 rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-100">
-              <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+              <p className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">
                 Color
               </p>
               {description ? (
@@ -146,7 +146,7 @@ export function UserColorPicker({
                     <button
                       key={color.id}
                       type="button"
-                      className={`flex h-11 items-center justify-center rounded-full text-sm font-black ring-2 transition hover:scale-105 ${getUserColorClass(color.id, user.role)} ${isSelected ? "ring-slate-950" : "ring-transparent"}`}
+                      className={`flex h-11 items-center justify-center rounded-full font-ui text-sm font-black ring-2 transition hover:scale-105 ${getUserColorClass(color.id, user.role)} ${isSelected ? "ring-slate-950" : "ring-transparent"}`}
                       onClick={() => handleColorChange(color.id)}
                       disabled={isSaving}
                       aria-label={`Set color to ${color.label}`}
@@ -161,7 +161,7 @@ export function UserColorPicker({
 
             {showPinForm ? (
               <form className="mt-4 rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-100" onSubmit={handlePinSubmit}>
-                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                <p className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">
                   PIN
                 </p>
                 <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
@@ -178,7 +178,7 @@ export function UserColorPicker({
                     }}
                   />
                   <button
-                    className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!isFourDigitPin(pin) || isSaving}
                     type="submit"
                   >

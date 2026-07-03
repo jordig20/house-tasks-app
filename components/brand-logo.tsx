@@ -16,8 +16,8 @@ export function BrandLogo({ compact = false }: { compact?: boolean }) {
       </span>
       {!compact ? (
         <span className="leading-tight">
-          <span className="block text-lg font-black tracking-tight text-slate-950">540A Cleaning</span>
-          <span className="block text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">House tasks</span>
+          <span className="block font-display text-lg font-bold tracking-tight text-slate-950">540A Cleaning</span>
+          <span className="block font-ui text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">House tasks</span>
         </span>
       ) : null}
     </Link>

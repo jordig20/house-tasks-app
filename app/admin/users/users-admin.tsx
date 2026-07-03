@@ -61,12 +61,12 @@ export function UsersAdmin({
   return (
     <>
       <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
-        <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">Calendar roster</p>
-        <h2 className="mt-2 text-xl font-black">Users come from assigned calendar tasks</h2>
+        <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">Calendar roster</p>
+        <h2 className="mt-2 font-display text-xl font-bold">Users come from assigned calendar tasks</h2>
         <p className="mt-2 text-sm text-slate-600">
           Every assignee found before the task title is added as a house member with the default PIN <strong>{defaultMemberPin}</strong>. Admins can reset any PIN, and each logged-in member can change their own PIN.
         </p>
-        {message ? <p className="mt-4 rounded-2xl bg-cream-50 p-3 text-sm font-bold text-roof-800">{message}</p> : null}
+        {message ? <p className="mt-4 rounded-2xl bg-slate-50 p-3 font-ui text-sm font-bold text-slate-700">{message}</p> : null}
       </section>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -86,14 +86,14 @@ export function UsersAdmin({
                 }}
               />
               <div>
-                <h2 className="text-lg font-black">{user.name}</h2>
+                <h2 className="font-display text-lg font-bold">{user.name}</h2>
                 <p className="text-sm capitalize text-slate-600">{user.role}</p>
               </div>
             </div>
-            <div className="mt-4 rounded-2xl bg-cream-50 p-3 text-sm text-slate-700">
+            <div className="mt-4 rounded-2xl bg-slate-50 p-3 font-ui text-sm text-slate-700">
               Current PIN: <strong className="text-slate-950">{user.pin}</strong>
             </div>
-            <button onClick={() => resetPin(user)} className="mt-4 w-full rounded-full bg-roof-800 px-4 py-3 font-black text-white">
+            <button onClick={() => resetPin(user)} className="mt-4 w-full rounded-full bg-slate-950 px-4 py-3 font-ui font-black text-white">
               Reset PIN to {defaultMemberPin}
             </button>
           </article>

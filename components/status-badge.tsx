@@ -14,7 +14,7 @@ const statusLabels: Record<TaskStatus, string> = {
 
 export function StatusBadge({ status }: { status: TaskStatus }) {
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${statusStyles[status]}`}>
+    <span className={`rounded-full px-3 py-1 font-ui text-xs font-bold ring-1 ${statusStyles[status]}`}>
       {statusLabels[status]}
     </span>
   );

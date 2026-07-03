@@ -27,7 +27,7 @@ export function HomeGate({
 
   if (hasSession !== false) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-cream-50 px-4 py-8 text-slate-600">
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8 text-slate-600">
         Loading house...
       </main>
     );
