@@ -23,9 +23,9 @@ const statusStyles: Record<TaskStatus, string> = {
   skipped: "bg-slate-100 text-slate-500 ring-slate-200",
 };
 const pastStatusStyles: Record<TaskStatus, string> = {
-  pending: "bg-slate-100 text-slate-500 ring-slate-200",
-  done: "bg-slate-200 text-slate-600 ring-slate-300 line-through",
-  skipped: "bg-slate-100 text-slate-400 ring-slate-200",
+  pending: "bg-amber-50 text-amber-800/70 ring-amber-200/70",
+  done: "bg-olive-50 text-olive-700/70 ring-olive-600/10 line-through",
+  skipped: "bg-slate-100 text-slate-500/70 ring-slate-200",
 };
 const nextStatuses: Record<TaskStatus, TaskStatus> = {
   pending: "done",
@@ -107,6 +107,18 @@ function getAssigneeInitials(task: CleaningTask) {
     .map((person) => person.trim().charAt(0).toUpperCase())
     .filter(Boolean)
     .join("&");
+}
+
+function getTaskKindIcon(task: CleaningTask) {
+  if (task.taskKind === "trash") {
+    return "♻";
+  }
+
+  if (task.taskKind === "bathroom") {
+    return "◫";
+  }
+
+  return null;
 }
 
 export function MonthCalendar({
@@ -209,12 +221,18 @@ export function MonthCalendar({
                   {dayTasks.slice(0, 3).map((task) => {
                     const canUpdate =
                       !!user &&
+                      dayKey <= todayKey &&
                       (user.role === "admin" ||
                         task.assignedUserIds.includes(user.id));
                     const nextStatus = nextStatuses[task.status];
                     const taskStyles = isPastDay
                       ? pastStatusStyles[task.status]
                       : statusStyles[task.status];
+                    const taskIcon = getTaskKindIcon(task);
+                    const disabledTitle =
+                      dayKey > todayKey
+                        ? "Future tasks can be updated once the day arrives."
+                        : `${getTaskMonthLabel(task)} - assigned to ${task.assignedTo.join(", ")}`;
 
                     return (
                       <button
@@ -224,7 +242,7 @@ export function MonthCalendar({
                         title={
                           canUpdate
                             ? `${getTaskMonthLabel(task)} - click for ${statusLabels[nextStatus]}`
-                            : `${getTaskMonthLabel(task)} - assigned to ${task.assignedTo.join(", ")}`
+                            : disabledTitle
                         }
                         disabled={!canUpdate}
                         onClick={() =>
@@ -232,6 +250,9 @@ export function MonthCalendar({
                         }
                       >
                         <span className="flex items-center justify-center gap-1 sm:hidden">
+                          {taskIcon ? (
+                            <span aria-hidden="true">{taskIcon}</span>
+                          ) : null}
                           <span className="truncate">
                             {getAssigneeInitials(task)}
                           </span>

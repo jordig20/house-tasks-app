@@ -108,25 +108,39 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
           </div>
           <div className="space-y-3">
             {multiDayTasks.map((task) => (
-              <article key={task.id} className="rounded-2xl bg-white p-4 text-slate-950">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-black text-slate-950">{task.title}</h3>
-                      {showCalendarChip ? (
-                        <span className="rounded-full bg-cream-50 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
-                          {task.calendarName}
-                        </span>
-                      ) : null}
+              <article key={task.id} className="rounded-2xl bg-white p-3 text-slate-950 sm:p-4">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-black text-slate-950">{task.title}</h3>
+                        {showCalendarChip ? (
+                          <span className="rounded-full bg-cream-50 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+                            {task.calendarName}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-sm font-bold text-slate-600">
+                        {task.assignedTo.length > 0
+                          ? task.assignedTo.join(", ")
+                          : "Unassigned"} · {getTaskDateRangeLabel(task)}
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm font-bold text-slate-600">
-                      {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"} · {getTaskDateRangeLabel(task)}
-                    </p>
-                    <p className="mt-2 rounded-xl bg-cream-50 px-3 py-2 text-xs font-bold text-slate-500 ring-1 ring-cream-200">
-                      Trash and recycling can be marked separately each day.
-                    </p>
-                    {task.completionMode === "daily" ? (
-                      <div className="mt-3 grid gap-2 sm:grid-cols-7">
+                    <StatusBadge
+                      status={
+                        task.completionMode === "daily"
+                          ? getTaskStatus(task)
+                          : task.status
+                      }
+                    />
+                  </div>
+
+                  {task.completionMode === "daily" ? (
+                    <div>
+                      <p className="mb-2 text-[0.68rem] font-black uppercase tracking-wide text-slate-400">
+                        Mark each day separately
+                      </p>
+                      <div className="grid grid-cols-7 gap-1 sm:gap-2">
                         {getVisibleDays(task).map((day) => {
                           const dateKey = getLocalDateKey(day);
                           const status = getTaskStatus(task, dateKey);
@@ -140,27 +154,20 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                               onClick={() => updateTaskStatus(task, nextStatus, dateKey)}
                               disabled={!canUpdate}
                               title={!canUpdate ? getDisabledTitle(task, dateKey) : undefined}
-                              className={`flex flex-col items-center gap-1 rounded-xl p-2 text-xs font-black ring-1 transition disabled:cursor-not-allowed ${dailyStatusButtonStyles[status]} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "opacity-55"}`}
+                              className={`flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[0.58rem] font-black ring-1 transition disabled:cursor-not-allowed sm:gap-1 sm:rounded-xl sm:p-2 sm:text-xs ${dailyStatusButtonStyles[status]} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "opacity-55"}`}
                             >
-                              <span className="text-center">
+                              <span className="truncate text-center leading-tight">
                                 {dayFormatter.format(day)}
                               </span>
-                              <span className="text-[0.62rem] uppercase tracking-wide">
+                              <span className="text-[0.55rem] uppercase tracking-wide sm:text-[0.62rem]">
                                 {dailyStatusLabels[status]}
                               </span>
                             </button>
                           );
                         })}
                       </div>
-                    ) : null}
-                  </div>
-                  <StatusBadge
-                    status={
-                      task.completionMode === "daily"
-                        ? getTaskStatus(task)
-                        : task.status
-                    }
-                  />
+                    </div>
+                  ) : null}
                 </div>
               </article>
             ))}
