@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { WeekTasks } from "@/components/week-tasks";
-import { getCalendarTasks, getWeekRange } from "@/lib/google-calendar";
+import { getStoredCalendarTasks } from "@/lib/calendar-task-store";
+import { getWeekRange } from "@/lib/google-calendar";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +19,15 @@ function CalendarWarnings({ warnings }: { warnings: string[] }) {
 
 export default async function WeekPage() {
   const { start, end } = getWeekRange();
-  const calendarTasks = await getCalendarTasks(start, end);
+  const calendarTasks = await getStoredCalendarTasks(start, end);
 
   return (
-    <AppShell
-      eyebrow={
-        calendarTasks.isConfiguredFallback
-          ? "Google Calendar setup needed"
-          : "Google Calendar"
-      }
+      <AppShell
+        eyebrow={
+          calendarTasks.isConfiguredFallback
+            ? "Calendar sync needed"
+            : "Google Calendar"
+        }
       title="540A weekly plan"
     >
       <CalendarWarnings warnings={calendarTasks.warnings} />

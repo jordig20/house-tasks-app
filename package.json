@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "googleapis": "^173.0.0",
     "next": "latest",
     "react": "latest",

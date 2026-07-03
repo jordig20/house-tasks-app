@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { TodayTasks } from "@/components/today-tasks";
-import { getCalendarTasks, getTodayRange } from "@/lib/google-calendar";
+import { getStoredCalendarTasks } from "@/lib/calendar-task-store";
+import { getTodayRange } from "@/lib/google-calendar";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +19,15 @@ function CalendarWarnings({ warnings }: { warnings: string[] }) {
 
 export default async function TodayPage() {
   const { start, end } = getTodayRange();
-  const calendarTasks = await getCalendarTasks(start, end);
+  const calendarTasks = await getStoredCalendarTasks(start, end);
 
   return (
-    <AppShell
-      eyebrow={
-        calendarTasks.isConfiguredFallback
-          ? "Google Calendar setup needed"
-          : "Google Calendar"
-      }
+      <AppShell
+        eyebrow={
+          calendarTasks.isConfiguredFallback
+            ? "Calendar sync needed"
+            : "Google Calendar"
+        }
       title="Today at 540A"
     >
       <CalendarWarnings warnings={calendarTasks.warnings} />
