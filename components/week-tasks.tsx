@@ -21,7 +21,7 @@ const dayFormatter = new Intl.DateTimeFormat("en-US", {
 
 const dailyStatusButtonStyles: Record<TaskStatus, string> = {
   pending: "bg-amber-100 text-amber-900 ring-amber-200",
-  done: "bg-olive-100 text-olive-700 ring-olive-600/20",
+  done: "bg-emerald-100 text-emerald-800 ring-emerald-200",
   skipped: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 const dailyStatusOptions: TaskStatus[] = ["pending", "done", "skipped"];
@@ -121,24 +121,24 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
   return (
     <div className="space-y-4">
       {multiDayTasks.length > 0 ? (
-        <section className="rounded-[2rem] border-2 border-roof-800/10 bg-roof-800 p-5 text-white shadow-sm">
+        <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 text-slate-950 shadow-sm backdrop-blur">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-cream-100">All week</p>
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-700">All week</p>
               <h2 className="mt-1 text-xl font-black">Weekly responsibilities</h2>
             </div>
-            <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-bold">{multiDayTasks.length} {multiDayTasks.length === 1 ? "event" : "events"}</span>
+            <span className="rounded-full bg-slate-950 px-3 py-1 text-sm font-bold text-white">{multiDayTasks.length} {multiDayTasks.length === 1 ? "event" : "events"}</span>
           </div>
           <div className="space-y-3">
             {multiDayTasks.map((task) => (
-              <article key={task.id} className="rounded-2xl bg-white p-3 text-slate-950 sm:p-4">
+              <article key={task.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-slate-950 sm:p-4">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-black text-slate-950">{task.title}</h3>
                         {showCalendarChip ? (
-                          <span className="rounded-full bg-cream-50 px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
                             {task.calendarName}
                           </span>
                         ) : null}
@@ -199,7 +199,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
       ) : null}
 
       {Object.entries(groupedTasks).map(([day, dayTasks]) => (
-        <section key={day} className="rounded-[2rem] bg-white p-5 shadow-sm">
+        <section key={day} className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-black">{day}</h2>
             <span className="text-sm font-bold text-slate-500">{dayTasks.length} {dayTasks.length === 1 ? "event" : "events"}</span>
@@ -207,13 +207,13 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
           {dayTasks.length > 0 ? (
             <div className="space-y-3">
               {dayTasks.map((task) => (
-                <article key={task.id} className="rounded-2xl bg-cream-50 p-4">
+                <article key={task.id} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-black text-slate-950">{task.title}</h3>
                         {showCalendarChip ? (
-                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-roof-800 ring-1 ring-cream-200">
+                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
                             {task.calendarName}
                           </span>
                         ) : null}
@@ -248,7 +248,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
               ))}
             </div>
           ) : (
-            <p className="rounded-2xl bg-cream-50 p-4 text-sm font-medium text-slate-500">No scheduled cleaning tasks.</p>
+            <p className="rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-500">No scheduled cleaning tasks.</p>
           )}
         </section>
       ))}

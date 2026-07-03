@@ -5,11 +5,16 @@ import { TaskCard } from "@/components/task-card";
 import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
 import { useTaskStatuses } from "@/lib/use-task-statuses";
-import type { CleaningTask } from "@/lib/tasks";
+import { getLocalDateKey, type CleaningTask, type TaskStatus } from "@/lib/tasks";
 
 const taskTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
+});
+const taskDayFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
 });
 
 function getTaskStartLabel(task: CleaningTask) {
@@ -20,7 +25,41 @@ function getTaskStartLabel(task: CleaningTask) {
   return taskTimeFormatter.format(new Date(task.start));
 }
 
-export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
+function parseTaskDate(value: string) {
+  return new Date(value.includes("T") ? value : `${value}T00:00:00`);
+}
+
+function getDisplayEndDate(task: CleaningTask) {
+  const endDate = parseTaskDate(task.end);
+
+  if (task.isAllDay) {
+    endDate.setDate(endDate.getDate() - 1);
+  }
+
+  return endDate;
+}
+
+function getTaskNextLabel(task: CleaningTask, dateKey: string, todayKey: string) {
+  if (dateKey === todayKey) {
+    return getTaskStartLabel(task);
+  }
+
+  return `${taskDayFormatter.format(new Date(`${dateKey}T00:00:00`))} · ${getTaskStartLabel(task)}`;
+}
+
+type UpcomingTask = CleaningTask & {
+  dateKey: string;
+  sortTime: number;
+  status: TaskStatus;
+};
+
+export function TodayTasks({
+  tasks,
+  upcomingTasks = tasks,
+}: {
+  tasks: CleaningTask[];
+  upcomingTasks?: CleaningTask[];
+}) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
   const { getTaskStatus, updateTaskStatus } = useTaskStatuses(tasks);
   const todayKey = getBanffDateKey(new Date());
@@ -38,6 +77,13 @@ export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
 
     return tasks.filter((task) => task.assignedUserIds.includes(user.id));
   }, [tasks, user]);
+  const visibleUpcomingTasks = useMemo(() => {
+    if (!user || user.role === "admin") {
+      return upcomingTasks;
+    }
+
+    return upcomingTasks.filter((task) => task.assignedUserIds.includes(user.id));
+  }, [upcomingTasks, user]);
 
   const tasksWithTodayStatus = visibleTasks.map((task) => ({
     ...task,
@@ -47,18 +93,47 @@ export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
   const total = tasksWithTodayStatus.length;
   const progressWidth = total > 0 ? (completedCount / total) * 100 : 0;
   const showCalendarChip = new Set(tasks.map((task) => task.calendarName)).size > 1;
-  const nextTask = tasksWithTodayStatus
-    .filter((task) => task.status !== "done")
+  const nextTask = visibleUpcomingTasks
+    .flatMap<UpcomingTask>((task) => {
+      if (task.completionMode !== "daily") {
+        return [
+          {
+            ...task,
+            dateKey: task.date,
+            sortTime: new Date(task.start).getTime(),
+            status: getTaskStatus(task),
+          },
+        ];
+      }
+
+      const endDate = getDisplayEndDate(task);
+      const currentDate = parseTaskDate(task.start);
+      const instances: UpcomingTask[] = [];
+
+      while (currentDate <= endDate) {
+        const dateKey = getLocalDateKey(currentDate);
+
+        instances.push({
+          ...task,
+          dateKey,
+          sortTime: currentDate.getTime(),
+          status: getTaskStatus(task, dateKey),
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return instances;
+    })
+    .filter((task) => task.dateKey >= todayKey && task.status !== "done")
     .sort(
       (firstTask, secondTask) =>
-        new Date(firstTask.start).getTime() -
-        new Date(secondTask.start).getTime(),
+        firstTask.sortTime - secondTask.sortTime,
     )[0];
 
   return (
     <>
-      <section className="mb-5 rounded-[2rem] bg-roof-800 p-5 text-white shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-cream-100">
+      <section className="mb-5 overflow-hidden rounded-[2rem] bg-slate-950 p-5 text-white shadow-[0_22px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">
           Your next task
         </p>
         {nextTask ? (
@@ -67,13 +142,13 @@ export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
               <h2 className="text-2xl font-black leading-tight">
                 {nextTask.title}
               </h2>
-              <p className="mt-1 text-sm font-bold text-cream-100">
-                {getTaskStartLabel(nextTask)} · {nextTask.assignedTo.length > 0
+              <p className="mt-1 text-sm font-bold text-slate-300">
+                {getTaskNextLabel(nextTask, nextTask.dateKey, todayKey)} · {nextTask.assignedTo.length > 0
                   ? nextTask.assignedTo.join(", ")
                   : "Unassigned"}
               </p>
             </div>
-            <span className="rounded-full bg-white px-3 py-1 text-sm font-black text-roof-800">
+            <span className="rounded-full bg-cyan-300 px-3 py-1 text-sm font-black text-slate-950">
               Up next
             </span>
           </div>
@@ -82,12 +157,12 @@ export function TodayTasks({ tasks }: { tasks: CleaningTask[] }) {
         )}
       </section>
 
-      <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
+      <section className="mb-5 rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
         <p className="text-sm font-bold text-slate-500">
           Merged read-only Google Calendar events for today
         </p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-roof-800" style={{ width: `${progressWidth}%` }} />
+          <div className="h-full rounded-full bg-cyan-500" style={{ width: `${progressWidth}%` }} />
         </div>
         <p className="mt-3 text-sm font-bold text-slate-700">
           {completedCount} of {total} calendar tasks done

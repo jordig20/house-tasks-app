@@ -1,8 +1,8 @@
 import type { TaskStatus } from "@/lib/tasks";
 
 const statusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-100 text-amber-800 ring-amber-200",
-  done: "bg-cream-100 text-roof-800 ring-cream-200",
+  pending: "bg-amber-100 text-amber-900 ring-amber-200",
+  done: "bg-emerald-100 text-emerald-800 ring-emerald-200",
   skipped: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 

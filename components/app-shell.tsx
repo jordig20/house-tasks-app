@@ -34,11 +34,11 @@ export function AppShell({
   const isDenied = isReady && !!user && requireAdmin && user.role !== "admin";
 
   return (
-    <main className="min-h-screen bg-cream-50 px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
+    <main className="min-h-screen bg-transparent px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
       <AppHeader user={user} onUserChange={setUser} />
       <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
         <header className="mb-6">
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-roof-800">
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-700">
             {eyebrow}
           </p>
           <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
@@ -47,7 +47,7 @@ export function AppShell({
         </header>
 
         {!isReady ? (
-          <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 text-slate-600 shadow-sm backdrop-blur">
             Loading house...
           </div>
         ) : needsLogin ? (
@@ -57,10 +57,7 @@ export function AppShell({
               Choose Admin or a calendar assignee and enter the matching PIN to
               create a local session.
             </p>
-            <Link
-              href="/login"
-              className="mt-5 inline-flex rounded-full bg-roof-800 px-5 py-3 font-bold text-white"
-            >
+            <Link href="/login" className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 font-bold text-white">
               Go to login
             </Link>
           </section>
@@ -70,10 +67,7 @@ export function AppShell({
             <p className="mt-2 text-slate-600">
               Log in as Admin to manage house members from calendar tasks.
             </p>
-            <Link
-              href="/today"
-              className="mt-5 inline-flex rounded-full bg-roof-800 px-5 py-3 font-bold text-white"
-            >
+            <Link href="/today" className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 font-bold text-white">
               Back to tasks
             </Link>
           </section>

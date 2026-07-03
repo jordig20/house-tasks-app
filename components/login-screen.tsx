@@ -2,11 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import {
-  getLoggedInUser,
-  saveLoggedInUser,
-} from "@/lib/auth";
-import { storageKeys, type HouseUser } from "@/lib/tasks";
+import { saveLoggedInUser } from "@/lib/auth";
+import type { HouseUser } from "@/lib/tasks";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 
@@ -23,7 +20,6 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const [storedUserName, setStoredUserName] = useState<string | null>(null);
   const selectedUser =
     users.find((user) => user.id === selectedUserId) ?? users[0] ?? null;
 
@@ -32,7 +28,6 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
       setSelectedUserId(
         (currentUserId) => currentUserId || (users[0]?.id ?? ""),
       );
-      setStoredUserName(getLoggedInUser()?.name ?? null);
     });
   }, [users]);
 
@@ -56,37 +51,22 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
     }
 
     saveLoggedInUser(result.user);
-    setStoredUserName(result.user.name);
     router.push("/today");
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-cream-50 px-4 py-8">
-      <section className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-soft">
+    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-8">
+      <section className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
         <BrandLogo />
-        <h1 className="mt-8 text-3xl font-black">Choose your account</h1>
-        <p className="mt-2 text-slate-600">
-          This is a local PIN login for the calendar-based house roster. The
-          selected user is saved in{" "}
-          <code className="rounded bg-cream-50 px-1 font-bold text-roof-800">
-            {storageKeys.currentUser}
-          </code>
-          .
-        </p>
-        {storedUserName ? (
-          <p className="mt-3 rounded-2xl bg-cream-50 p-3 text-sm font-bold text-roof-800">
-            Current local session: {storedUserName}
-          </p>
-        ) : null}
 
-        <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm font-bold text-slate-700">
               Account
             </label>
             <button
               type="button"
-              className="mt-2 flex w-full items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-roof-600 focus:border-roof-600 focus:outline-none"
+              className="mt-2 flex w-full items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition hover:border-slate-400 focus:border-slate-900 focus:outline-none"
               aria-expanded={isUserPickerOpen}
               onClick={() => setIsUserPickerOpen((isOpen) => !isOpen)}
             >
@@ -107,20 +87,20 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
                   Select account
                 </span>
               )}
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream-50 ring-1 ring-cream-200">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-slate-200">
                 <span
-                  className={`h-2.5 w-2.5 border-b-2 border-r-2 border-roof-800 transition ${isUserPickerOpen ? "-translate-y-0.5 rotate-[225deg]" : "translate-y-[-2px] rotate-45"}`}
+                  className={`h-2.5 w-2.5 border-b-2 border-r-2 border-slate-900 transition ${isUserPickerOpen ? "-translate-y-0.5 rotate-[225deg]" : "translate-y-[-2px] rotate-45"}`}
                   aria-hidden="true"
                 />
               </span>
             </button>
 
             {isUserPickerOpen ? (
-              <div className="mt-3 max-h-72 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-2 shadow-soft">
+              <div className="mt-3 max-h-72 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
                 {users.map((user) => (
                   <label
                     key={user.id}
-                    className={`flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition ${selectedUserId === user.id ? "bg-cream-100 ring-1 ring-roof-600/30" : "hover:bg-cream-50"}`}
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition ${selectedUserId === user.id ? "bg-slate-100 ring-1 ring-slate-300" : "hover:bg-slate-50"}`}
                   >
                     <input
                       className="sr-only"
@@ -145,7 +125,7 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
                       </span>
                     </span>
                     {selectedUserId === user.id ? (
-                      <span className="rounded-full bg-roof-800 px-2 py-1 text-xs font-black text-white">
+                      <span className="rounded-full bg-slate-950 px-2 py-1 text-xs font-black text-white">
                         Selected
                       </span>
                     ) : null}
@@ -161,7 +141,7 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
             </label>
             <input
               id="pin"
-              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg tracking-[0.4em] outline-none focus:border-roof-600"
+              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg tracking-[0.4em] outline-none focus:border-slate-950"
               inputMode="numeric"
               maxLength={4}
               placeholder="••••"
@@ -179,7 +159,7 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
           </div>
 
           <button
-            className="w-full rounded-full bg-roof-800 px-5 py-3 text-center font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-full bg-slate-950 px-5 py-3 text-center font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
             type="submit"
             disabled={pin.length !== 4 || isSubmitting}
           >

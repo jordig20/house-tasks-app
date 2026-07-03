@@ -92,7 +92,7 @@ export function UserColorPicker({
     <div className="relative inline-flex">
       <button
         type="button"
-        className="rounded-full focus:outline-none focus:ring-2 focus:ring-roof-800/30"
+        className="rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
         onClick={() => setIsOpen((currentValue) => !currentValue)}
         aria-expanded={isOpen}
         aria-label={`Edit ${user.name}'s color`}
@@ -103,7 +103,7 @@ export function UserColorPicker({
 
       {isOpen ? (
         <div
-          className={`absolute top-[calc(100%+0.75rem)] z-30 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-slate-200 bg-white p-3 text-left shadow-soft ${align === "right" ? "right-0" : "left-0"}`}
+          className={`absolute top-[calc(100%+0.75rem)] z-30 w-80 max-w-[calc(100vw-2rem)] rounded-3xl border border-slate-200 bg-white p-3 text-left shadow-[0_22px_70px_rgba(15,23,42,0.18)] ${align === "right" ? "right-0" : "left-0"}`}
         >
           <p className="text-xs font-black uppercase tracking-wide text-slate-500">
             Color
@@ -121,7 +121,7 @@ export function UserColorPicker({
                 <button
                   key={color.id}
                   type="button"
-                  className={`flex h-10 items-center justify-center rounded-full text-sm font-black ring-2 transition hover:scale-105 ${getUserColorClass(color.id, user.role)} ${isSelected ? "ring-roof-800" : "ring-transparent"}`}
+                  className={`flex h-10 items-center justify-center rounded-full text-sm font-black ring-2 transition hover:scale-105 ${getUserColorClass(color.id, user.role)} ${isSelected ? "ring-slate-950" : "ring-transparent"}`}
                   onClick={() => handleColorChange(color.id)}
                   disabled={isSaving}
                   aria-label={`Set color to ${color.label}`}
@@ -140,7 +140,7 @@ export function UserColorPicker({
               </p>
               <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
                 <input
-                  className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-roof-600"
+                  className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
                   inputMode="numeric"
                   maxLength={4}
                   placeholder="0000"
@@ -152,7 +152,7 @@ export function UserColorPicker({
                   }}
                 />
                 <button
-                  className="rounded-full bg-roof-800 px-4 py-2 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={!isFourDigitPin(pin) || isSaving}
                   type="submit"
                 >

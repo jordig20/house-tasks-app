@@ -63,11 +63,11 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-white/70 bg-cream-50/90 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0">
+    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-white/70 bg-slate-50/85 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
         <div className="flex items-center gap-6">
           <BrandLogo compact />
-          <nav className="hidden items-center gap-1 rounded-full bg-white p-1 shadow-sm sm:flex">
+          <nav className="hidden items-center gap-1 rounded-full border border-slate-200 bg-white/80 p-1 shadow-sm backdrop-blur sm:flex">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
 
@@ -75,7 +75,7 @@ export function AppHeader({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-full px-3 py-2 text-sm font-bold hover:bg-cream-100 hover:text-roof-800 ${isActive ? "bg-cream-100 text-roof-800" : "text-slate-600"}`}
+                  className={`rounded-full px-3 py-2 text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
                 >
                   {item.label}
                 </Link>
@@ -97,12 +97,12 @@ export function AppHeader({
               showPinForm
               onPinChange={updateCurrentUserPin}
             />
-            <button onClick={signOut} className="rounded-full bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm">
+            <button onClick={signOut} className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-xs font-bold text-slate-600 shadow-sm transition hover:text-slate-950">
               Log out
             </button>
           </div>
         ) : (
-          <Link href="/login" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-roof-800 shadow-sm">Log in</Link>
+          <Link href="/login" className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm">Log in</Link>
         )}
       </div>
     </header>

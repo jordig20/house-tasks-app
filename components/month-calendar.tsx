@@ -19,12 +19,12 @@ const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const statusStyles: Record<TaskStatus, string> = {
   pending: "bg-amber-100 text-amber-950 ring-amber-200",
-  done: "bg-olive-100 text-olive-700 ring-olive-600/20 line-through",
+  done: "bg-emerald-100 text-emerald-800 ring-emerald-200 line-through",
   skipped: "bg-slate-100 text-slate-500 ring-slate-200",
 };
 const pastStatusStyles: Record<TaskStatus, string> = {
   pending: "bg-amber-50 text-amber-800/70 ring-amber-200/70",
-  done: "bg-olive-50 text-olive-700/70 ring-olive-600/10 line-through",
+  done: "bg-emerald-50 text-emerald-800/70 ring-emerald-200/60 line-through",
   skipped: "bg-slate-100 text-slate-500/70 ring-slate-200",
 };
 const nextStatuses: Record<TaskStatus, TaskStatus> = {
@@ -201,10 +201,10 @@ export function MonthCalendar({
 
   return (
     <div className="space-y-4">
-      <section className="rounded-[2rem] bg-white p-5 shadow-sm">
+      <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-roof-800">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-cyan-700">
               Month view
             </p>
             <h2 className="mt-1 text-2xl font-black text-slate-950">
@@ -215,7 +215,7 @@ export function MonthCalendar({
             <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900">
               {pendingCount} pending
             </span>
-            <span className="rounded-full bg-olive-100 px-3 py-1 text-olive-700">
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">
               {completedCount} done
             </span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
@@ -225,7 +225,7 @@ export function MonthCalendar({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-slate-200">
+      <section className="overflow-hidden rounded-[2rem] bg-white/95 shadow-sm ring-1 ring-slate-200 backdrop-blur">
         <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-[0.68rem] font-black uppercase tracking-wide text-slate-500 sm:text-xs">
           {weekdayLabels.map((day) => (
             <div key={day} className="px-1 py-3">
@@ -250,11 +250,11 @@ export function MonthCalendar({
             return (
               <div
                 key={dayKey}
-                className={`min-h-24 border-b border-r border-slate-200 p-1.5 sm:min-h-36 sm:p-2 ${isToday ? "bg-cream-50" : isPastDay ? "bg-slate-50 text-slate-400" : isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
+                className={`min-h-24 border-b border-r border-slate-200 p-1.5 sm:min-h-36 sm:p-2 ${isToday ? "bg-cyan-50" : isPastDay ? "bg-slate-50 text-slate-400" : isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
               >
                 <div className="mb-1 flex items-center justify-between">
                   <span
-                    className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-black ${isToday ? "bg-roof-800 text-white shadow-sm" : isPastDay ? "text-slate-400" : "text-slate-700"}`}
+                    className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-black ${isToday ? "bg-slate-950 text-white shadow-sm" : isPastDay ? "text-slate-400" : "text-slate-700"}`}
                   >
                     {dayFormatter.format(day)}
                   </span>
