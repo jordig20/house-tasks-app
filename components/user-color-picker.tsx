@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { UserAvatar } from "@/components/user-avatar";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import {
@@ -36,6 +37,28 @@ export function UserColorPicker({
   const [isSaving, setIsSaving] = useState(false);
   const [pin, setPin] = useState("");
   const [pinMessage, setPinMessage] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   function isFourDigitPin(value: string) {
     return /^\d{4}$/.test(value);
@@ -86,33 +109,26 @@ export function UserColorPicker({
     }
   }
 
-  return (
-    <div className="relative inline-flex">
-      <button
-        type="button"
-        className="rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
-        onClick={() => setIsOpen((currentValue) => !currentValue)}
-        aria-expanded={isOpen}
-        aria-label={`Edit ${user.name}'s color`}
-        title="Edit color"
-      >
-        <UserAvatar user={user} size={size} />
-      </button>
-
-      {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 px-4 py-5 backdrop-blur-sm sm:items-center">
+  const modal = isOpen
+    ? createPortal(
+        <div className="fixed inset-0 z-[100] flex min-h-dvh items-center justify-center overflow-y-auto bg-slate-950/55 px-4 py-[max(1rem,env(safe-area-inset-top))] backdrop-blur-sm">
           <button
             type="button"
-            className="absolute inset-0 cursor-default"
+            className="fixed inset-0 cursor-default"
             aria-label="Close profile settings"
             onClick={() => setIsOpen(false)}
           />
-          <section className="relative w-full max-w-md rounded-[2rem] border border-white/20 bg-white p-5 text-left shadow-[0_30px_90px_rgba(15,23,42,0.35)]">
+          <section
+            className="relative my-auto max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[2rem] border border-white/20 bg-white p-5 text-left shadow-[0_30px_90px_rgba(15,23,42,0.35)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`profile-settings-${user.id}`}
+          >
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">
                 <UserAvatar user={user} size="lg" />
                 <div className="min-w-0">
-                  <h2 className="truncate font-display text-xl font-bold text-slate-950">
+                  <h2 id={`profile-settings-${user.id}`} className="truncate font-display text-xl font-bold text-slate-950">
                     {user.name}
                   </h2>
                   <p className="font-ui text-sm font-bold capitalize text-slate-500">
@@ -193,8 +209,24 @@ export function UserColorPicker({
               </form>
             ) : null}
           </section>
-        </div>
-      ) : null}
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        className="rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        aria-expanded={isOpen}
+        aria-label={`Edit ${user.name}'s color`}
+        title="Edit color"
+      >
+        <UserAvatar user={user} size={size} />
+      </button>
+      {modal}
     </div>
   );
 }
