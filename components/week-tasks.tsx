@@ -11,6 +11,7 @@ import {
   groupTasksByDay,
   isMultiDayTask,
   type CleaningTask,
+  type TaskKind,
   type TaskStatus,
 } from "@/lib/tasks";
 import { useTaskStatuses } from "@/lib/use-task-statuses";
@@ -35,6 +36,11 @@ const dailyNextStatus: Record<TaskStatus, TaskStatus> = {
   pending: "done",
   done: "skipped",
   skipped: "pending",
+};
+const taskKindLabels: Record<TaskKind, string> = {
+  bathroom: "Bathroom",
+  trash: "Trash",
+  other: "Task",
 };
 
 function parseTaskDate(value: string) {
@@ -96,7 +102,6 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
   const multiDayTasks = tasksWithStatus.filter((task) => isMultiDayTask(task));
   const singleDayTasks = tasksWithStatus.filter((task) => !isMultiDayTask(task));
   const groupedTasks = groupTasksByDay(singleDayTasks);
-  const showCalendarChip = new Set(tasks.map((task) => task.calendarName)).size > 1;
   const canUpdateTask = (task: CleaningTask, dateKey: string) =>
     !!user &&
     dateKey <= todayKey &&
@@ -141,11 +146,9 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                           <TaskKindIcon className="h-4 w-4" task={task} />
                           <span>{task.title}</span>
                         </h3>
-                        {showCalendarChip ? (
-                          <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
-                            {task.calendarName}
-                          </span>
-                        ) : null}
+                        <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
+                          {taskKindLabels[task.taskKind]}
+                        </span>
                       </div>
                       <p className="mt-1 text-sm font-bold text-slate-600">
                         {task.assignedTo.length > 0
@@ -219,11 +222,9 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                           <TaskKindIcon className="h-4 w-4" task={task} />
                           <span>{task.title}</span>
                         </h3>
-                        {showCalendarChip ? (
-                          <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
-                            {task.calendarName}
-                          </span>
-                        ) : null}
+                        <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
+                          {taskKindLabels[task.taskKind]}
+                        </span>
                       </div>
                       <p className="mt-1 text-sm font-bold text-slate-600">
                         {task.assignedTo.length > 0 ? task.assignedTo.join(", ") : "Unassigned"} · {getTaskDateRangeLabel(task)}
