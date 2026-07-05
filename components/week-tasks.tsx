@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { TaskKindIcon } from "@/components/task-kind-icon";
 import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
 import {
@@ -136,7 +137,10 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-display font-bold text-slate-950">{task.title}</h3>
+                        <h3 className="flex items-center gap-2 font-display font-bold text-slate-950">
+                          <TaskKindIcon className="h-4 w-4" task={task} />
+                          <span>{task.title}</span>
+                        </h3>
                         {showCalendarChip ? (
                           <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
                             {task.calendarName}
@@ -211,7 +215,10 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-display font-bold text-slate-950">{task.title}</h3>
+                        <h3 className="flex items-center gap-2 font-display font-bold text-slate-950">
+                          <TaskKindIcon className="h-4 w-4" task={task} />
+                          <span>{task.title}</span>
+                        </h3>
                         {showCalendarChip ? (
                           <span className="rounded-full bg-white px-2 py-1 font-ui text-[0.68rem] font-black uppercase tracking-wide text-cyan-700 ring-1 ring-slate-200">
                             {task.calendarName}

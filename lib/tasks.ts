@@ -68,18 +68,18 @@ export function getTaskKind(taskTitle: string): TaskKind {
     .replace(/[\u0300-\u036f]/g, "");
 
   if (
-    normalizedTitle.includes("trash") ||
-    normalizedTitle.includes("recycling")
-  ) {
-    return "trash";
-  }
-
-  if (
     normalizedTitle.includes("bathroom") ||
     normalizedTitle.includes("bano") ||
     normalizedTitle.includes("bath")
   ) {
     return "bathroom";
+  }
+
+  if (
+    normalizedTitle.includes("trash") ||
+    normalizedTitle.includes("recycling")
+  ) {
+    return "trash";
   }
 
   return "other";
