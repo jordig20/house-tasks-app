@@ -3,6 +3,7 @@ import "server-only";
 import { sql } from "@/lib/db";
 import { ensureCalendarTables } from "@/lib/calendar-task-store";
 import { adminUser, type HouseUser } from "@/lib/tasks";
+import { defaultMemberPin } from "@/lib/users";
 
 type HouseUserRow = {
   id: string;
@@ -65,6 +66,7 @@ export async function validateStoredLogin(userId: string, pin: string) {
     name: user.name,
     role: user.role,
     color: user.color,
+    mustChangePin: user.pin === defaultMemberPin,
   };
 
   return loggedInUser;

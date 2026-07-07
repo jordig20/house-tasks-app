@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { LoggedInUser } from "@/lib/auth";
@@ -24,6 +25,11 @@ const adminNavItems = [
   { href: "/admin/users", label: "Users" },
 ];
 
+type PinReminderState = {
+  dismissed: boolean;
+  userId?: string;
+};
+
 export function AppHeader({
   user,
   onUserChange,
@@ -33,7 +39,12 @@ export function AppHeader({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [pinReminderState, setPinReminderState] = useState<PinReminderState>({
+    dismissed: false,
+  });
   const navItems = user?.role === "admin" ? adminNavItems : memberNavItems;
+  const dismissedPinReminder =
+    pinReminderState.userId === user?.id && pinReminderState.dismissed;
 
   function signOut() {
     clearLoggedInUser();
@@ -60,6 +71,9 @@ export function AppHeader({
     if (!response.ok) {
       throw new Error(result.message ?? "PIN update failed.");
     }
+
+    updateCurrentUser({ ...user, mustChangePin: false });
+    setPinReminderState({ dismissed: false, userId: user.id });
   }
 
   return (
@@ -95,6 +109,15 @@ export function AppHeader({
               onUserChange={updateCurrentUser}
               showPinForm
               onPinChange={updateCurrentUserPin}
+              forceOpen={Boolean(user.mustChangePin && !dismissedPinReminder)}
+              pinReminder={
+                user.mustChangePin
+                  ? "Your PIN is still 0000. Please choose a private PIN."
+                  : undefined
+              }
+              onClose={() =>
+                setPinReminderState({ dismissed: true, userId: user.id })
+              }
             />
             <button onClick={signOut} className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 font-ui text-xs font-bold text-slate-600 shadow-sm transition hover:text-slate-950">
               Log out

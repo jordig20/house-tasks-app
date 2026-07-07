@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { saveLoggedInUser } from "@/lib/auth";
+import { saveLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import type { HouseUser } from "@/lib/tasks";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 
 type LoginResponse = {
-  user?: Omit<HouseUser, "pin">;
+  user?: LoggedInUser;
   message?: string;
 };
 

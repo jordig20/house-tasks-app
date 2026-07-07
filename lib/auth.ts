@@ -3,7 +3,9 @@
 import type { HouseUser } from "@/lib/tasks";
 import { storageKeys } from "@/lib/tasks";
 
-export type LoggedInUser = Omit<HouseUser, "pin">;
+export type LoggedInUser = Omit<HouseUser, "pin"> & {
+  mustChangePin?: boolean;
+};
 
 export function saveLoggedInUser(user: LoggedInUser) {
   window.localStorage.setItem(storageKeys.currentUser, JSON.stringify(user));

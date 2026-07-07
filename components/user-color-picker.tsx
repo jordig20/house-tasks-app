@@ -23,6 +23,9 @@ export function UserColorPicker({
   onUsersChange,
   showPinForm = false,
   onPinChange,
+  forceOpen = false,
+  pinReminder,
+  onClose,
 }: {
   user: HouseUser | Pick<HouseUser, "id" | "name" | "role" | "color">;
   tasks?: Pick<CleaningTask, "assignedTo">[];
@@ -32,11 +35,20 @@ export function UserColorPicker({
   onUsersChange?: (users: HouseUser[]) => void;
   showPinForm?: boolean;
   onPinChange?: (pin: string) => Promise<void>;
+  forceOpen?: boolean;
+  pinReminder?: string;
+  onClose?: () => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isManuallyOpen, setIsManuallyOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [pin, setPin] = useState("");
   const [pinMessage, setPinMessage] = useState("");
+  const isOpen = forceOpen || isManuallyOpen;
+
+  function closeModal() {
+    setIsManuallyOpen(false);
+    onClose?.();
+  }
 
   useEffect(() => {
     if (!isOpen) {
@@ -47,7 +59,8 @@ export function UserColorPicker({
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        setIsManuallyOpen(false);
+        onClose?.();
       }
     }
 
@@ -58,7 +71,7 @@ export function UserColorPicker({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   function isFourDigitPin(value: string) {
     return /^\d{4}$/.test(value);
@@ -76,7 +89,7 @@ export function UserColorPicker({
     const updatedUser = nextUsers.find((nextUser) => nextUser.id === user.id);
 
     setIsSaving(false);
-    setIsOpen(false);
+    setIsManuallyOpen(false);
 
     if (response.ok && result.users) {
       onUsersChange?.(result.users);
@@ -95,6 +108,11 @@ export function UserColorPicker({
       return;
     }
 
+    if (pin === "0000") {
+      setPinMessage("Choose a private PIN instead of 0000.");
+      return;
+    }
+
     setIsSaving(true);
     setPinMessage("");
 
@@ -102,6 +120,7 @@ export function UserColorPicker({
       await onPinChange(pin);
       setPin("");
       setPinMessage("PIN updated.");
+      setIsManuallyOpen(false);
     } catch (error) {
       setPinMessage(error instanceof Error ? error.message : "PIN update failed.");
     } finally {
@@ -116,7 +135,7 @@ export function UserColorPicker({
             type="button"
             className="fixed inset-0 cursor-default"
             aria-label="Close profile settings"
-            onClick={() => setIsOpen(false)}
+            onClick={closeModal}
           />
           <section
             className="relative my-auto max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[2rem] border border-white/20 bg-white p-5 text-left shadow-[0_30px_90px_rgba(15,23,42,0.35)]"
@@ -139,7 +158,7 @@ export function UserColorPicker({
               <button
                 type="button"
                 className="rounded-full bg-slate-100 px-3 py-2 font-ui text-xs font-black text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
-                onClick={() => setIsOpen(false)}
+                onClick={closeModal}
               >
                 Close
               </button>
@@ -180,6 +199,11 @@ export function UserColorPicker({
                 <p className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">
                   PIN
                 </p>
+                {pinReminder ? (
+                  <p className="mt-2 rounded-2xl bg-amber-100 px-3 py-2 text-sm font-bold text-amber-950 ring-1 ring-amber-200">
+                    {pinReminder}
+                  </p>
+                ) : null}
                 <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
                   <input
                     className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
@@ -219,7 +243,14 @@ export function UserColorPicker({
       <button
         type="button"
         className="rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
-        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        onClick={() => {
+          if (isOpen) {
+            closeModal();
+            return;
+          }
+
+          setIsManuallyOpen(true);
+        }}
         aria-expanded={isOpen}
         aria-label={`Edit ${user.name}'s color`}
         title="Edit color"
