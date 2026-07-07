@@ -68,7 +68,10 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
   }
 
   function getTaskStatus(task: CleaningTask, date = task.date) {
-    return statuses[getTaskCompletionKey(task, date)] ?? task.status;
+    return (
+      statuses[getTaskCompletionKey(task, date)] ??
+      (task.completionMode === "daily" ? "pending" : task.status)
+    );
   }
 
   function updateTaskStatus(
