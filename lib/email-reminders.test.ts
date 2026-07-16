@@ -6,14 +6,15 @@ const mocks = vi.hoisted(() => ({
   getStoredCalendarTasks: vi.fn(),
   getStoredHouseUsers: vi.fn(),
   getStoredTaskStatuses: vi.fn(),
-  resendSend: vi.fn(),
+  nodemailerCreateTransport: vi.fn(),
+  nodemailerSendMail: vi.fn(),
   sql: vi.fn(),
 }));
 
-vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(function ResendMock() {
-    return { emails: { send: mocks.resendSend } };
-  }),
+vi.mock("nodemailer", () => ({
+  default: {
+    createTransport: mocks.nodemailerCreateTransport,
+  },
 }));
 
 vi.mock("@/lib/db", () => ({ sql: mocks.sql }));
@@ -83,11 +84,14 @@ function getSqlQueries() {
 describe("sendTaskReminderEmails", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.RESEND_API_KEY = "test-key";
+    process.env.GMAIL_USER = "tasks@example.com";
+    process.env.GMAIL_APP_PASSWORD = "test-app-password";
+    delete process.env.REMINDER_EMAIL_FROM;
     delete process.env.NEXT_PUBLIC_SITE_URL;
+    mocks.nodemailerCreateTransport.mockReturnValue({ sendMail: mocks.nodemailerSendMail });
     mocks.getStoredHouseUsers.mockResolvedValue([user()]);
     mocks.getStoredTaskStatuses.mockResolvedValue({});
-    mocks.resendSend.mockResolvedValue({});
+    mocks.nodemailerSendMail.mockResolvedValue({});
     mocks.sql.mockImplementation((strings: TemplateStringsArray, ...values: unknown[]) => {
       const query = strings.join(" ");
 
@@ -114,13 +118,22 @@ describe("sendTaskReminderEmails", () => {
     const result = await sendTaskReminderEmails("morning");
 
     expect(result).toEqual({ sent: 1, skipped: 0, warnings: [] });
-    expect(mocks.resendSend).toHaveBeenCalledWith(
+    expect(mocks.nodemailerCreateTransport).toHaveBeenCalledWith({
+      service: "Gmail",
+      auth: {
+        user: "tasks@example.com",
+        pass: "test-app-password",
+      },
+    });
+    expect(mocks.nodemailerSendMail).toHaveBeenCalledWith(
       expect.objectContaining({
+        from: "540A Tasks <tasks@example.com>",
+        to: "jordi@example.com",
         subject: "You have one task today at 540A",
         text: expect.stringContaining("Take trash out"),
       }),
     );
-    expect(mocks.resendSend.mock.calls[0][0].text).not.toContain("Already done");
+    expect(mocks.nodemailerSendMail.mock.calls[0][0].text).not.toContain("Already done");
   });
 
   it("skips users without the matching reminder preference", async () => {
@@ -134,16 +147,16 @@ describe("sendTaskReminderEmails", () => {
     const result = await sendTaskReminderEmails("evening");
 
     expect(result).toEqual({ sent: 0, skipped: 3, warnings: [] });
-    expect(mocks.resendSend).not.toHaveBeenCalled();
+    expect(mocks.nodemailerSendMail).not.toHaveBeenCalled();
   });
 
   it("returns a warning without loading tasks when the email provider is not configured", async () => {
-    delete process.env.RESEND_API_KEY;
+    delete process.env.GMAIL_USER;
 
     await expect(sendTaskReminderEmails("morning")).resolves.toEqual({
       sent: 0,
       skipped: 0,
-      warnings: ["RESEND_API_KEY is not configured."],
+      warnings: ["GMAIL_USER and GMAIL_APP_PASSWORD must be configured."],
     });
     expect(mocks.getStoredCalendarTasks).not.toHaveBeenCalled();
   });
@@ -160,34 +173,31 @@ describe("sendTaskReminderEmails", () => {
       ],
       warnings: [],
     });
-    mocks.resendSend.mockRejectedValueOnce(new Error("provider rejected recipient")).mockResolvedValueOnce({});
+    mocks.nodemailerSendMail.mockRejectedValueOnce(new Error("SMTP rejected recipient")).mockResolvedValueOnce({});
 
     const result = await sendTaskReminderEmails("morning");
 
     expect(result).toEqual({
       sent: 1,
       skipped: 1,
-      warnings: ["Failed to send morning reminder to jordi@example.com: provider rejected recipient"],
+      warnings: ["Failed to send morning reminder to jordi@example.com: SMTP rejected recipient"],
     });
-    expect(mocks.resendSend).toHaveBeenCalledTimes(2);
-    expect(mocks.resendSend.mock.calls[1][0]).toEqual(
+    expect(mocks.nodemailerSendMail).toHaveBeenCalledTimes(2);
+    expect(mocks.nodemailerSendMail.mock.calls[1][0]).toEqual(
       expect.objectContaining({ to: "maria@example.com" }),
     );
   });
 
-  it("treats Resend returned errors as failed sends", async () => {
+  it("treats SMTP send failures as failed sends", async () => {
     mocks.getStoredCalendarTasks.mockResolvedValue({ tasks: [task()], warnings: [] });
-    mocks.resendSend.mockResolvedValue({
-      data: null,
-      error: { message: "domain is not verified" },
-    });
+    mocks.nodemailerSendMail.mockRejectedValue(new Error("Invalid login"));
 
     const result = await sendTaskReminderEmails("morning");
 
     expect(result).toEqual({
       sent: 0,
       skipped: 1,
-      warnings: ["Failed to send morning reminder to jordi@example.com: domain is not verified"],
+      warnings: ["Failed to send morning reminder to jordi@example.com: Invalid login"],
     });
     expect(getSqlQueries()).toContainEqual(expect.stringContaining("delivery_status = 'failed'"));
     expect(getSqlQueries()).not.toContainEqual(expect.stringContaining("delivery_status = 'sent',"));
@@ -201,7 +211,7 @@ describe("sendTaskReminderEmails", () => {
 
     await sendTaskReminderEmails("morning");
 
-    const html = mocks.resendSend.mock.calls[0][0].html;
+    const html = mocks.nodemailerSendMail.mock.calls[0][0].html;
 
     expect(html).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt; &amp; Trash");
     expect(html).not.toContain('<img src=x onerror="alert(1)">');
@@ -239,6 +249,6 @@ describe("sendTaskReminderEmails", () => {
 
     expect(firstResult.sent + secondResult.sent).toBe(1);
     expect(firstResult.skipped + secondResult.skipped).toBe(1);
-    expect(mocks.resendSend).toHaveBeenCalledTimes(1);
+    expect(mocks.nodemailerSendMail).toHaveBeenCalledTimes(1);
   });
 });

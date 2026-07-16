@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { sql } from "@/lib/db";
 import { ensureCalendarTables, getStoredCalendarTasks } from "@/lib/calendar-task-store";
 import { getBanffTodayRange } from "@/lib/banff-time";
@@ -19,11 +19,6 @@ type ReminderSendResult = {
   warnings: string[];
 };
 
-type ResendSendResult = {
-  data?: unknown;
-  error?: unknown;
-};
-
 const staleReservationMinutes = 30;
 
 function getSiteUrl() {
@@ -31,7 +26,7 @@ function getSiteUrl() {
 }
 
 function getFromEmail() {
-  return process.env.REMINDER_EMAIL_FROM ?? "540A Tasks <onboarding@resend.dev>";
+  return process.env.REMINDER_EMAIL_FROM ?? (process.env.GMAIL_USER ? `540A Tasks <${process.env.GMAIL_USER}>` : undefined);
 }
 
 function getReminderSubject(type: EmailReminderType, taskCount: number) {
@@ -275,16 +270,23 @@ function getReminderSendFailureWarning(type: EmailReminderType, user: ReminderUs
 }
 
 export async function sendTaskReminderEmails(type: EmailReminderType): Promise<ReminderSendResult> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
   const warnings: string[] = [];
 
-  if (!apiKey) {
-    return { sent: 0, skipped: 0, warnings: ["RESEND_API_KEY is not configured."] };
+  if (!gmailUser || !gmailAppPassword) {
+    return { sent: 0, skipped: 0, warnings: ["GMAIL_USER and GMAIL_APP_PASSWORD must be configured."] };
   }
 
   await ensureCalendarTables();
 
-  const resend = new Resend(apiKey);
+  const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailAppPassword,
+    },
+  });
   const { start, end, dateKey } = getBanffTodayRange();
   const [calendarTasks, users, statuses] = await Promise.all([
     getStoredCalendarTasks(start, end),
@@ -328,17 +330,13 @@ export async function sendTaskReminderEmails(type: EmailReminderType): Promise<R
     }
 
     try {
-      const result = (await resend.emails.send({
+      await transporter.sendMail({
         from: getFromEmail(),
         to: reminderUser.email,
         subject: getReminderSubject(type, tasks.length),
         html: renderReminderEmail({ dateKey, tasks, type, user: reminderUser }),
         text: renderReminderText({ tasks, type, user: reminderUser }),
-      })) as ResendSendResult;
-
-      if (result.error) {
-        throw result.error;
-      }
+      });
     } catch (error) {
       warnings.push(getReminderSendFailureWarning(type, reminderUser, error));
       await markReminderFailed({ dateKey, error, type, userId: user.id });
