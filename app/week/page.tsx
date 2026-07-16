@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { WeekTasks } from "@/components/week-tasks";
+import { getBanffWeekRange } from "@/lib/banff-time";
 import { getStoredCalendarTasks } from "@/lib/calendar-task-store";
-import { getWeekRange } from "@/lib/google-calendar";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ function CalendarWarnings({ warnings }: { warnings: string[] }) {
 }
 
 export default async function WeekPage() {
-  const { start, end } = getWeekRange();
+  const { start, end, startKey, endKey } = getBanffWeekRange();
   const calendarTasks = await getStoredCalendarTasks(start, end);
 
   return (
@@ -31,7 +31,7 @@ export default async function WeekPage() {
       title="540A weekly plan"
     >
       <CalendarWarnings warnings={calendarTasks.warnings} />
-      <WeekTasks tasks={calendarTasks.tasks} />
+      <WeekTasks tasks={calendarTasks.tasks} weekRange={{ startKey, endKey }} />
     </AppShell>
   );
 }

@@ -111,6 +111,32 @@ describe("task instance characterization", () => {
     ]);
   });
 
+  it("constrains daily instances to the visible week when the task started earlier", () => {
+    const multiWeekDailyTask = task({
+      start: "2026-07-01",
+      end: "2026-07-20",
+      date: "2026-07-01",
+    });
+
+    expect(
+      getTaskInstances(multiWeekDailyTask, {
+        startKey: "2026-07-12",
+        endKey: "2026-07-18",
+      }).map((instance) => ({
+        dateKey: instance.dateKey,
+        statusKey: instance.statusKey,
+      })),
+    ).toEqual([
+      { dateKey: "2026-07-12", statusKey: "daily:task-1:2026-07-12" },
+      { dateKey: "2026-07-13", statusKey: "daily:task-1:2026-07-13" },
+      { dateKey: "2026-07-14", statusKey: "daily:task-1:2026-07-14" },
+      { dateKey: "2026-07-15", statusKey: "daily:task-1:2026-07-15" },
+      { dateKey: "2026-07-16", statusKey: "daily:task-1:2026-07-16" },
+      { dateKey: "2026-07-17", statusKey: "daily:task-1:2026-07-17" },
+      { dateKey: "2026-07-18", statusKey: "daily:task-1:2026-07-18" },
+    ]);
+  });
+
   it("uses event status keys across expanded event instances", () => {
     const eventTask = task({ completionMode: "event", taskKind: "bathroom" });
 

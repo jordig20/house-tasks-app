@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { TaskKindIcon } from "@/components/task-kind-icon";
 import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
-import { getTaskInstances } from "@/lib/task-instances";
+import { getTaskInstances, type TaskDateRange } from "@/lib/task-instances";
 import {
   getTaskDateRangeLabel,
   groupTasksByDay,
@@ -43,20 +43,19 @@ const taskKindLabels: Record<TaskKind, string> = {
   other: "Task",
 };
 
-function getVisibleDays(task: CleaningTask) {
-  return getTaskInstances(task)
-    .slice(0, 7)
-    .map((instance) => ({
-      date: new Date(`${instance.dateKey}T00:00:00`),
-      dateKey: instance.dateKey,
-    }));
+function getVisibleDays(task: CleaningTask, weekRange: TaskDateRange) {
+  return getTaskInstances(task, weekRange).map((instance) => ({
+    date: new Date(`${instance.dateKey}T00:00:00`),
+    dateKey: instance.dateKey,
+  }));
 }
 
 function getDailyTaskSummaryStatus(
   task: CleaningTask,
+  weekRange: TaskDateRange,
   getTaskStatus: (task: CleaningTask, date?: string) => TaskStatus,
 ) {
-  const visibleDays = getVisibleDays(task);
+  const visibleDays = getVisibleDays(task, weekRange);
   const statuses = visibleDays.map((day) =>
     getTaskStatus(task, day.dateKey),
   );
@@ -75,7 +74,13 @@ function getDailyTaskSummaryStatus(
   return "pending";
 }
 
-export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
+export function WeekTasks({
+  tasks,
+  weekRange,
+}: {
+  tasks: CleaningTask[];
+  weekRange: TaskDateRange;
+}) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
   const { tasksWithStatus, getTaskStatus, updateTaskStatus } =
     useTaskStatuses(tasks);
@@ -140,7 +145,11 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                     <StatusBadge
                       status={
                         task.completionMode === "daily"
-                          ? getDailyTaskSummaryStatus(task, getTaskStatus)
+                          ? getDailyTaskSummaryStatus(
+                              task,
+                              weekRange,
+                              getTaskStatus,
+                            )
                           : task.status
                       }
                     />
@@ -152,7 +161,7 @@ export function WeekTasks({ tasks }: { tasks: CleaningTask[] }) {
                         Mark each day separately
                       </p>
                       <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                        {getVisibleDays(task).map(({ date, dateKey }) => {
+                        {getVisibleDays(task, weekRange).map(({ date, dateKey }) => {
                           const status = getTaskStatus(task, dateKey);
                           const canUpdate = canUpdateTask(task, dateKey);
                           const nextStatus = dailyNextStatus[status];
