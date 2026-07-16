@@ -9,9 +9,47 @@ type TaskStatusMap = Record<string, TaskStatus>;
 type TaskStatusesResponse = {
   statuses?: TaskStatusMap;
 };
+export type StatusUpdateError = {
+  statusKey: string;
+  message: string;
+};
+
+export function applyOptimisticStatusUpdate(
+  currentStatuses: TaskStatusMap,
+  statusKey: string,
+  status: TaskStatus,
+) {
+  return { ...currentStatuses, [statusKey]: status };
+}
+
+export function rollbackStatusUpdate(
+  currentStatuses: TaskStatusMap,
+  statusKey: string,
+  previousStatus?: TaskStatus,
+) {
+  const nextStatuses = { ...currentStatuses };
+
+  if (previousStatus) {
+    nextStatuses[statusKey] = previousStatus;
+  } else {
+    delete nextStatuses[statusKey];
+  }
+
+  return nextStatuses;
+}
+
+function getStatusUpdateErrorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "Task status update failed. Your change was not saved.";
+}
 
 export function useTaskStatuses(tasks: CleaningTask[]) {
   const [statuses, setStatuses] = useState<TaskStatusMap>({});
+  const [confirmedStatuses, setConfirmedStatuses] = useState<TaskStatusMap>({});
+  const [pendingStatusKeys, setPendingStatusKeys] = useState<string[]>([]);
+  const [statusUpdateError, setStatusUpdateError] =
+    useState<StatusUpdateError | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -24,6 +62,7 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
 
         if (isMounted) {
           setStatuses(result.statuses ?? {});
+          setConfirmedStatuses(result.statuses ?? {});
         }
       } finally {
         if (isMounted) {
@@ -45,13 +84,21 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
     task?: CleaningTask,
     date = task?.date,
   ) {
-    setStatuses((currentStatuses) => {
-      const nextStatuses = { ...currentStatuses, [statusKey]: status };
-      return nextStatuses;
-    });
+    const previousStatus = confirmedStatuses[statusKey];
+
+    setStatuses((currentStatuses) =>
+      applyOptimisticStatusUpdate(currentStatuses, statusKey, status),
+    );
 
     if (task && date) {
       const currentUser = getLoggedInUser();
+
+      setStatusUpdateError(null);
+      setPendingStatusKeys((currentKeys) =>
+        currentKeys.includes(statusKey)
+          ? currentKeys
+          : [...currentKeys, statusKey],
+      );
 
       void fetch("/api/task-statuses", {
         method: "POST",
@@ -63,7 +110,36 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
           status,
           updatedBy: currentUser?.id,
         }),
-      }).catch(() => undefined);
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            const result = (await response.json().catch(() => null)) as {
+              message?: string;
+            } | null;
+
+            throw new Error(
+              result?.message ?? "Task status update failed. Your change was not saved.",
+            );
+          }
+
+          setConfirmedStatuses((currentStatuses) =>
+            applyOptimisticStatusUpdate(currentStatuses, statusKey, status),
+          );
+        })
+        .catch((error: unknown) => {
+          setStatuses((currentStatuses) =>
+            rollbackStatusUpdate(currentStatuses, statusKey, previousStatus),
+          );
+          setStatusUpdateError({
+            statusKey,
+            message: getStatusUpdateErrorMessage(error),
+          });
+        })
+        .finally(() => {
+          setPendingStatusKeys((currentKeys) =>
+            currentKeys.filter((key) => key !== statusKey),
+          );
+        });
     }
   }
 
@@ -91,7 +167,9 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
 
   return {
     isReady,
+    pendingStatusKeys,
     statuses,
+    statusUpdateError,
     tasksWithStatus,
     getTaskStatus,
     updateStatus,

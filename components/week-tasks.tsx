@@ -82,7 +82,7 @@ export function WeekTasks({
   weekRange: TaskDateRange;
 }) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
-  const { tasksWithStatus, getTaskStatus, updateTaskStatus } =
+  const { tasksWithStatus, getTaskStatus, statusUpdateError, updateTaskStatus } =
     useTaskStatuses(tasks);
   const todayKey = getBanffDateKey(new Date());
   const multiDayTasks = tasksWithStatus.filter((task) => isMultiDayTask(task));
@@ -112,6 +112,12 @@ export function WeekTasks({
 
   return (
     <div className="space-y-4">
+      {statusUpdateError ? (
+        <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-ui text-sm font-bold text-red-700">
+          {statusUpdateError.message}
+        </p>
+      ) : null}
+
       {multiDayTasks.length > 0 ? (
         <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 text-slate-950 shadow-sm backdrop-blur">
           <div className="mb-4 flex items-center justify-between">

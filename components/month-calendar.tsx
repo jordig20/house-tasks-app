@@ -98,7 +98,8 @@ export function MonthCalendar({
   monthStart: string;
 }) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
-  const { getTaskStatus, updateTaskStatus } = useTaskStatuses(tasks);
+  const { getTaskStatus, statusUpdateError, updateTaskStatus } =
+    useTaskStatuses(tasks);
   const days = useMemo(() => getCalendarDays(monthStart), [monthStart]);
   const currentMonth = parseTaskDate(monthStart).getMonth();
   const todayKey = getBanffDateKey(new Date());
@@ -127,6 +128,12 @@ export function MonthCalendar({
 
   return (
     <div className="space-y-4">
+      {statusUpdateError ? (
+        <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-ui text-sm font-bold text-red-700">
+          {statusUpdateError.message}
+        </p>
+      ) : null}
+
       <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

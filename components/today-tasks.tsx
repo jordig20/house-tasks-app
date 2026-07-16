@@ -48,7 +48,8 @@ export function TodayTasks({
   upcomingTasks?: CleaningTask[];
 }) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
-  const { getTaskStatus, updateTaskStatus } = useTaskStatuses(tasks);
+  const { getTaskStatus, statusUpdateError, updateTaskStatus } =
+    useTaskStatuses(tasks);
   const todayKey = getBanffDateKey(new Date());
 
   useEffect(() => {
@@ -133,6 +134,12 @@ export function TodayTasks({
           {completedCount} of {total} calendar tasks done
         </p>
       </section>
+
+      {statusUpdateError ? (
+        <p role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-ui text-sm font-bold text-red-700">
+          {statusUpdateError.message}
+        </p>
+      ) : null}
 
       <div className="space-y-4">
         {total > 0 ? (
