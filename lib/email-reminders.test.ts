@@ -36,7 +36,7 @@ vi.mock("@/lib/user-store", () => ({
   getStoredHouseUsers: mocks.getStoredHouseUsers,
 }));
 
-const { sendTaskReminderEmails } = await import("@/lib/email-reminders");
+const { getTaskReminderEmailPreview, sendTaskReminderEmails, sendTestTaskReminderEmail } = await import("@/lib/email-reminders");
 
 function task(overrides: Partial<CleaningTask> = {}): CleaningTask {
   return {
@@ -250,5 +250,44 @@ describe("sendTaskReminderEmails", () => {
     expect(firstResult.sent + secondResult.sent).toBe(1);
     expect(firstResult.skipped + secondResult.skipped).toBe(1);
     expect(mocks.nodemailerSendMail).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders a preview without reserving or marking notification delivery", async () => {
+    mocks.getStoredCalendarTasks.mockResolvedValue({ tasks: [task({ title: "Clean kitchen" })], warnings: [] });
+
+    const preview = await getTaskReminderEmailPreview({ type: "morning", userId: "jordi" });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        dateKey: "2026-07-15",
+        subject: "You have one task today at 540A",
+        taskCount: 1,
+        type: "morning",
+      }),
+    );
+    expect(preview.html).toContain("Clean kitchen");
+    expect(preview.text).toContain("Clean kitchen");
+    expect(getSqlQueries()).not.toContainEqual(expect.stringContaining("task_email_notifications"));
+    expect(mocks.nodemailerSendMail).not.toHaveBeenCalled();
+  });
+
+  it("sends test reminders through Gmail SMTP without touching duplicate tracking", async () => {
+    mocks.getStoredCalendarTasks.mockResolvedValue({ tasks: [task({ title: "Clean kitchen" })], warnings: [] });
+
+    const result = await sendTestTaskReminderEmail({
+      recipientEmail: "preview@example.com",
+      type: "evening",
+      userId: "jordi",
+    });
+
+    expect(result.sent).toBe(true);
+    expect(mocks.nodemailerSendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "preview@example.com",
+        subject: "[Test] One task is still pending at 540A",
+        html: expect.stringContaining("Clean kitchen"),
+      }),
+    );
+    expect(getSqlQueries()).not.toContainEqual(expect.stringContaining("task_email_notifications"));
   });
 });

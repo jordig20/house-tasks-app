@@ -22,12 +22,36 @@ type UsersResponse = {
   message?: string;
 };
 
+type ReminderType = "morning" | "evening";
+
+type ReminderPreview = {
+  dateKey: string;
+  from?: string;
+  html: string;
+  subject: string;
+  taskCount: number;
+  text: string;
+  type: ReminderType;
+  user: Pick<AdminUser, "id" | "name" | "email">;
+};
+
+type ReminderAdminResponse = {
+  message?: string;
+  preview?: ReminderPreview;
+  sent?: boolean;
+};
+
 export function UsersAdmin() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [actorPin, setActorPin] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoadedAdminUsers, setHasLoadedAdminUsers] = useState(false);
+  const [previewType, setPreviewType] = useState<ReminderType>("morning");
+  const [previewUserId, setPreviewUserId] = useState("");
+  const [preview, setPreview] = useState<ReminderPreview | null>(null);
+  const [testRecipientEmail, setTestRecipientEmail] = useState("");
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const hasLoadedAdminUsersRef = useRef(false);
 
   useEffect(() => {
@@ -75,6 +99,7 @@ export function UsersAdmin() {
       hasLoadedAdminUsersRef.current = true;
       setUsers(result.users);
       setHasLoadedAdminUsers(true);
+      setPreviewUserId((currentUserId) => currentUserId || result.users?.[0]?.id || "");
       setMessage("Email reminder settings loaded.");
     } finally {
       setIsLoading(false);
@@ -160,6 +185,70 @@ export function UsersAdmin() {
     setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
   }
 
+  async function requestReminderAdmin(action: "preview" | "send-test") {
+    const currentUser = getLoggedInUser();
+    const normalizedRecipientEmail = testRecipientEmail.trim().toLowerCase();
+
+    if (!actorPin) {
+      throw new Error("Admin PIN is required to preview or send reminder emails.");
+    }
+
+    if (!previewUserId) {
+      throw new Error("Choose a user for the reminder preview.");
+    }
+
+    if (action === "send-test" && !normalizedRecipientEmail) {
+      throw new Error("Enter a test recipient email address.");
+    }
+
+    const response = await fetch("/api/admin/email-reminders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getUserRequestHeaders(currentUser) },
+      body: JSON.stringify({
+        action,
+        actorPin,
+        recipientEmail: action === "send-test" ? normalizedRecipientEmail : undefined,
+        type: previewType,
+        userId: previewUserId,
+      }),
+    });
+    const result = (await response.json()) as ReminderAdminResponse;
+
+    if (!response.ok || !result.preview) {
+      throw new Error(result.message ?? "Reminder email request failed.");
+    }
+
+    setPreview(result.preview);
+    setMessage(action === "send-test" ? `Test reminder sent to ${normalizedRecipientEmail}.` : "Reminder email preview loaded.");
+  }
+
+  async function handleReminderPreviewSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPreviewLoading(true);
+    setMessage("");
+
+    try {
+      await requestReminderAdmin("preview");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Reminder email preview failed.");
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }
+
+  async function handleReminderTestSend() {
+    setIsPreviewLoading(true);
+    setMessage("");
+
+    try {
+      await requestReminderAdmin("send-test");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Test reminder email failed.");
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }
+
   return (
     <>
       <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
@@ -188,6 +277,77 @@ export function UsersAdmin() {
         </form>
         {message ? <p className="mt-4 rounded-2xl bg-slate-50 p-3 font-ui text-sm font-bold text-slate-700">{message}</p> : null}
       </section>
+
+      {hasLoadedAdminUsers ? (
+        <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
+          <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">Reminder email lab</p>
+          <h2 className="mt-2 font-display text-xl font-bold">Preview and test-send reminder emails</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Uses the same reminder rendering and Gmail SMTP provider as scheduled emails. Test sends do not mark reminders as sent.
+          </p>
+          <form className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1.3fr_auto]" onSubmit={handleReminderPreviewSubmit}>
+            <select
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-ui text-sm font-bold outline-none focus:border-slate-950"
+              value={previewType}
+              onChange={(event) => setPreviewType(event.target.value as ReminderType)}
+            >
+              <option value="morning">Morning</option>
+              <option value="evening">Evening</option>
+            </select>
+            <select
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-ui text-sm font-bold outline-none focus:border-slate-950"
+              value={previewUserId}
+              onChange={(event) => setPreviewUserId(event.target.value)}
+            >
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>{user.name}</option>
+              ))}
+            </select>
+            <input
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-ui text-sm font-bold outline-none focus:border-slate-950"
+              inputMode="email"
+              placeholder="test-recipient@example.com"
+              type="email"
+              value={testRecipientEmail}
+              onChange={(event) => setTestRecipientEmail(event.target.value)}
+            />
+            <button
+              className="rounded-full bg-slate-950 px-5 py-3 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isPreviewLoading}
+              type="submit"
+            >
+              {isPreviewLoading ? "Working…" : "Preview"}
+            </button>
+          </form>
+          <button
+            className="mt-3 rounded-full bg-cyan-700 px-5 py-3 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isPreviewLoading || !testRecipientEmail.trim()}
+            type="button"
+            onClick={handleReminderTestSend}
+          >
+            Send test email
+          </button>
+          {preview ? (
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div className="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                <p className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">Email details</p>
+                <dl className="mt-3 space-y-2 text-sm text-slate-700">
+                  <div><dt className="font-black">Subject</dt><dd>{preview.subject}</dd></div>
+                  <div><dt className="font-black">From</dt><dd>{preview.from ?? "Gmail sender not configured"}</dd></div>
+                  <div><dt className="font-black">Context</dt><dd>{preview.user.name} · {preview.type} · {preview.dateKey} · {preview.taskCount} pending tasks</dd></div>
+                </dl>
+                <pre className="mt-4 max-h-72 overflow-auto whitespace-pre-wrap rounded-2xl bg-white p-3 text-xs text-slate-700 ring-1 ring-slate-200">{preview.text}</pre>
+              </div>
+              <iframe
+                className="min-h-[420px] w-full rounded-3xl bg-white ring-1 ring-slate-200"
+                sandbox=""
+                srcDoc={preview.html}
+                title="Reminder email HTML preview"
+              />
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {users.map((user) => (

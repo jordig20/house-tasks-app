@@ -19,6 +19,18 @@ type ReminderSendResult = {
   warnings: string[];
 };
 
+export type ReminderEmailPreview = {
+  dateKey: string;
+  from?: string;
+  html: string;
+  subject: string;
+  taskCount: number;
+  tasks: Pick<CleaningTask, "id" | "title" | "dateLabel" | "taskKind">[];
+  text: string;
+  type: EmailReminderType;
+  user: Pick<HouseUser, "id" | "name"> & { email?: string };
+};
+
 const staleReservationMinutes = 30;
 
 function getSiteUrl() {
@@ -269,6 +281,101 @@ function getReminderSendFailureWarning(type: EmailReminderType, user: ReminderUs
   return `Failed to send ${type} reminder to ${user.email}: ${message}`;
 }
 
+function createGmailTransporter(gmailUser: string, gmailAppPassword: string) {
+  return nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailAppPassword,
+    },
+  });
+}
+
+async function getReminderPreviewContext(type: EmailReminderType, userId: string) {
+  await ensureCalendarTables();
+
+  const { start, end, dateKey } = getBanffTodayRange();
+  const [calendarTasks, users, statuses] = await Promise.all([
+    getStoredCalendarTasks(start, end),
+    getStoredHouseUsers(),
+    getStoredTaskStatuses(),
+  ]);
+  const user = users.find((candidate) => candidate.id === userId);
+
+  if (!user) {
+    throw new Error("Selected reminder user was not found.");
+  }
+
+  const tasks = getPendingTasksForUser({
+    dateKey,
+    statuses,
+    tasks: calendarTasks.tasks,
+    user,
+  });
+  const reminderUser = {
+    ...user,
+    email: user.email ?? "preview@example.com",
+  };
+
+  return { dateKey, reminderUser, tasks };
+}
+
+export async function getTaskReminderEmailPreview({
+  type,
+  userId,
+}: {
+  type: EmailReminderType;
+  userId: string;
+}): Promise<ReminderEmailPreview> {
+  const { dateKey, reminderUser, tasks } = await getReminderPreviewContext(type, userId);
+
+  return {
+    dateKey,
+    from: getFromEmail(),
+    html: renderReminderEmail({ dateKey, tasks, type, user: reminderUser }),
+    subject: getReminderSubject(type, tasks.length),
+    taskCount: tasks.length,
+    tasks: tasks.map(({ id, title, dateLabel, taskKind }) => ({ id, title, dateLabel, taskKind })),
+    text: renderReminderText({ tasks, type, user: reminderUser }),
+    type,
+    user: {
+      id: reminderUser.id,
+      name: reminderUser.name,
+      email: reminderUser.email,
+    },
+  };
+}
+
+export async function sendTestTaskReminderEmail({
+  recipientEmail,
+  type,
+  userId,
+}: {
+  recipientEmail: string;
+  type: EmailReminderType;
+  userId: string;
+}) {
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+
+  if (!gmailUser || !gmailAppPassword) {
+    throw new Error("GMAIL_USER and GMAIL_APP_PASSWORD must be configured.");
+  }
+
+  const preview = await getTaskReminderEmailPreview({ type, userId });
+  const transporter = createGmailTransporter(gmailUser, gmailAppPassword);
+
+  await transporter.sendMail({
+    from: preview.from,
+    to: recipientEmail,
+    subject: `[Test] ${preview.subject}`,
+    html: preview.html,
+    text: preview.text,
+  });
+
+  return { sent: true, preview };
+}
+
 export async function sendTaskReminderEmails(type: EmailReminderType): Promise<ReminderSendResult> {
   const gmailUser = process.env.GMAIL_USER;
   const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
@@ -280,13 +387,7 @@ export async function sendTaskReminderEmails(type: EmailReminderType): Promise<R
 
   await ensureCalendarTables();
 
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: gmailUser,
-      pass: gmailAppPassword,
-    },
-  });
+  const transporter = createGmailTransporter(gmailUser, gmailAppPassword);
   const { start, end, dateKey } = getBanffTodayRange();
   const [calendarTasks, users, statuses] = await Promise.all([
     getStoredCalendarTasks(start, end),
