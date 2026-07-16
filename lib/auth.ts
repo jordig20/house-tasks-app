@@ -5,10 +5,15 @@ import { storageKeys } from "@/lib/tasks";
 
 export type LoggedInUser = Omit<HouseUser, "pin"> & {
   mustChangePin?: boolean;
+  mustAddEmail?: boolean;
 };
 
 export function saveLoggedInUser(user: LoggedInUser) {
   window.localStorage.setItem(storageKeys.currentUser, JSON.stringify(user));
+}
+
+export function getUserRequestHeaders(user: Pick<LoggedInUser, "id"> | null): Record<string, string> {
+  return user ? { "x-house-user-id": user.id } : {};
 }
 
 export function getLoggedInUser() {

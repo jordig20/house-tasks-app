@@ -1,48 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserColorPicker } from "@/components/user-color-picker";
-import type { CleaningTask, HouseUser } from "@/lib/tasks";
+import { getLoggedInUser, getUserRequestHeaders } from "@/lib/auth";
+import type { HouseUser } from "@/lib/tasks";
 import { defaultMemberPin } from "@/lib/users";
 
+type AdminUser = Pick<HouseUser, "id" | "name" | "role" | "color">;
+
 type UsersResponse = {
-  users?: HouseUser[];
+  users?: AdminUser[];
   message?: string;
 };
 
-function getColorGroupNames(
-  user: HouseUser,
-  tasks: Pick<CleaningTask, "assignedTo">[],
-) {
-  const pairTask = tasks.find((task) => {
-    const normalizedAssignees = task.assignedTo.map((name) =>
-      name.trim().toLowerCase(),
-    );
-
-    return (
-      normalizedAssignees.length > 1 &&
-      normalizedAssignees.includes(user.name.toLowerCase())
-    );
-  });
-
-  return pairTask?.assignedTo ?? [user.name];
-}
-
-export function UsersAdmin({
-  initialUsers,
-  tasks,
-}: {
-  initialUsers: HouseUser[];
-  tasks: Pick<CleaningTask, "assignedTo">[];
-}) {
-  const [users, setUsers] = useState<HouseUser[]>(initialUsers);
+export function UsersAdmin() {
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadUsers() {
+      const response = await fetch("/api/users");
+      const result = (await response.json()) as UsersResponse;
+
+      if (isMounted && response.ok && result.users) {
+        setUsers(result.users);
+      }
+    }
+
+    void loadUsers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   async function savePin(userId: string, pin: string) {
+    const currentUser = getLoggedInUser();
+    const actorPin = window.prompt("Enter your admin PIN to confirm this reset.");
+
+    if (!actorPin) {
+      throw new Error("Admin PIN is required to reset a PIN.");
+    }
+
     const response = await fetch("/api/users", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, pin }),
+      headers: { "Content-Type": "application/json", ...getUserRequestHeaders(currentUser) },
+      body: JSON.stringify({ userId, pin, actorPin }),
     });
     const result = (await response.json()) as UsersResponse;
 
@@ -53,7 +58,7 @@ export function UsersAdmin({
     setUsers(result.users);
   }
 
-  async function resetPin(user: HouseUser) {
+  async function resetPin(user: AdminUser) {
     await savePin(user.id, defaultMemberPin);
     setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
   }
@@ -75,23 +80,22 @@ export function UsersAdmin({
             <div className="flex items-center gap-4">
               <UserColorPicker
                 user={user}
-                tasks={tasks}
                 size="lg"
-                description={`Applies to ${getColorGroupNames(user, tasks).join(" & ")}.`}
+                description={`Applies to ${user.name}.`}
                 onUsersChange={(nextUsers) => {
-                  setUsers(nextUsers);
-                  setMessage(
-                    `Color updated for ${getColorGroupNames(user, tasks).join(" & ")}.`,
+                  setUsers((currentUsers) =>
+                    currentUsers.map((currentUser) => ({
+                      ...currentUser,
+                      color: nextUsers.find((nextUser) => nextUser.id === currentUser.id)?.color,
+                    })),
                   );
+                  setMessage(`Color updated for ${user.name}.`);
                 }}
               />
               <div>
                 <h2 className="font-display text-lg font-bold">{user.name}</h2>
                 <p className="text-sm capitalize text-slate-600">{user.role}</p>
               </div>
-            </div>
-            <div className="mt-4 rounded-2xl bg-slate-50 p-3 font-ui text-sm text-slate-700">
-              Current PIN: <strong className="text-slate-950">{user.pin}</strong>
             </div>
             <button onClick={() => resetPin(user)} className="mt-4 w-full rounded-full bg-slate-950 px-4 py-3 font-ui font-black text-white">
               Reset PIN to {defaultMemberPin}

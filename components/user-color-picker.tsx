@@ -3,7 +3,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { UserAvatar } from "@/components/user-avatar";
-import type { CleaningTask, HouseUser } from "@/lib/tasks";
+import { getLoggedInUser, getUserRequestHeaders } from "@/lib/auth";
+import type { HouseUser } from "@/lib/tasks";
 import {
   getUserColorClass,
   userColorOptions,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/users";
 
 type UsersResponse = {
-  users?: HouseUser[];
+  users?: Pick<HouseUser, "id" | "name" | "role" | "color">[];
   message?: string;
 };
 
@@ -23,26 +24,40 @@ export function UserColorPicker({
   onUsersChange,
   showPinForm = false,
   onPinChange,
+  showEmailForm = false,
+  onEmailChange,
+  onEmailPreferencesChange,
   forceOpen = false,
   pinReminder,
+  emailReminder,
   onClose,
 }: {
-  user: HouseUser | Pick<HouseUser, "id" | "name" | "role" | "color">;
-  tasks?: Pick<CleaningTask, "assignedTo">[];
+  user: HouseUser | Pick<HouseUser, "id" | "name" | "role" | "color" | "email" | "emailRemindersEnabled" | "eveningRemindersEnabled">;
   size?: "sm" | "md" | "lg";
   description?: string;
   onUserChange?: (user: Pick<HouseUser, "id" | "name" | "role" | "color">) => void;
-  onUsersChange?: (users: HouseUser[]) => void;
+  onUsersChange?: (users: Pick<HouseUser, "id" | "name" | "role" | "color">[]) => void;
   showPinForm?: boolean;
-  onPinChange?: (pin: string) => Promise<void>;
+  onPinChange?: (pin: string, currentPin: string) => Promise<void>;
+  showEmailForm?: boolean;
+  onEmailChange?: (email: string, currentPin: string) => Promise<void>;
+  onEmailPreferencesChange?: (preferences: {
+    emailRemindersEnabled?: boolean;
+    eveningRemindersEnabled?: boolean;
+  }, currentPin: string) => Promise<void>;
   forceOpen?: boolean;
   pinReminder?: string;
+  emailReminder?: string;
   onClose?: () => void;
 }) {
   const [isManuallyOpen, setIsManuallyOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [pin, setPin] = useState("");
+  const [currentPin, setCurrentPin] = useState("");
   const [pinMessage, setPinMessage] = useState("");
+  const [email, setEmail] = useState(user.email ?? "");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [colorMessage, setColorMessage] = useState("");
   const isOpen = forceOpen || isManuallyOpen;
 
   function closeModal() {
@@ -77,26 +92,51 @@ export function UserColorPicker({
     return /^\d{4}$/.test(value);
   }
 
+  function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
   async function handleColorChange(color: UserColorId) {
-    setIsSaving(true);
-    const response = await fetch("/api/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id, color }),
-    });
-    const result = (await response.json()) as UsersResponse;
-    const nextUsers = result.users ?? [];
-    const updatedUser = nextUsers.find((nextUser) => nextUser.id === user.id);
+    const currentUser = getLoggedInUser();
+    const pinProof = window.prompt("Enter your PIN to confirm this color change.");
 
-    setIsSaving(false);
-    setIsManuallyOpen(false);
-
-    if (response.ok && result.users) {
-      onUsersChange?.(result.users);
+    if (!pinProof) {
+      setColorMessage("PIN is required to change color.");
+      return;
     }
 
-    if (updatedUser) {
-      onUserChange?.(updatedUser);
+    setIsSaving(true);
+    setColorMessage("");
+
+    try {
+      const response = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...getUserRequestHeaders(currentUser) },
+        body: JSON.stringify({
+          userId: user.id,
+          color,
+          ...(currentUser?.role === "admin" ? { actorPin: pinProof } : { currentPin: pinProof }),
+        }),
+      });
+      const result = (await response.json()) as UsersResponse;
+      const nextUsers = result.users ?? [];
+      const updatedUser = nextUsers.find((nextUser) => nextUser.id === user.id);
+
+      if (!response.ok || !result.users) {
+        throw new Error(result.message ?? "Color update failed.");
+      }
+
+      onUsersChange?.(result.users);
+
+      if (updatedUser) {
+        onUserChange?.({ ...user, color: updatedUser.color });
+      }
+
+      setIsManuallyOpen(false);
+    } catch (error) {
+      setColorMessage(error instanceof Error ? error.message : "Color update failed.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -113,16 +153,75 @@ export function UserColorPicker({
       return;
     }
 
+    if (!isFourDigitPin(currentPin)) {
+      setPinMessage("Enter your current PIN to confirm this change.");
+      return;
+    }
+
     setIsSaving(true);
     setPinMessage("");
 
     try {
-      await onPinChange(pin);
+      await onPinChange(pin, currentPin);
       setPin("");
+      setCurrentPin("");
       setPinMessage("PIN updated.");
       setIsManuallyOpen(false);
     } catch (error) {
       setPinMessage(error instanceof Error ? error.message : "PIN update failed.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!isValidEmail(normalizedEmail) || !onEmailChange) {
+      setEmailMessage("Enter a valid email address.");
+      return;
+    }
+
+    if (!isFourDigitPin(currentPin)) {
+      setEmailMessage("Enter your current PIN to confirm this change.");
+      return;
+    }
+
+    setIsSaving(true);
+    setEmailMessage("");
+
+    try {
+      await onEmailChange(normalizedEmail, currentPin);
+      setEmail(normalizedEmail);
+      setEmailMessage("Email saved.");
+    } catch (error) {
+      setEmailMessage(error instanceof Error ? error.message : "Email update failed.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleEmailPreferenceChange(
+    preferences: Parameters<NonNullable<typeof onEmailPreferencesChange>>[0],
+  ) {
+    if (!onEmailPreferencesChange) {
+      return;
+    }
+
+    if (!isFourDigitPin(currentPin)) {
+      setEmailMessage("Enter your current PIN to confirm this change.");
+      return;
+    }
+
+    setIsSaving(true);
+    setEmailMessage("");
+
+    try {
+      await onEmailPreferencesChange(preferences, currentPin);
+    } catch (error) {
+      setEmailMessage(error instanceof Error ? error.message : "Email settings update failed.");
     } finally {
       setIsSaving(false);
     }
@@ -192,6 +291,11 @@ export function UserColorPicker({
                   );
                 })}
               </div>
+              {colorMessage ? (
+                <p className="mt-2 text-xs font-bold text-slate-600">
+                  {colorMessage}
+                </p>
+              ) : null}
             </div>
 
             {showPinForm ? (
@@ -204,30 +308,122 @@ export function UserColorPicker({
                     {pinReminder}
                   </p>
                 ) : null}
-                <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+                <div className="mt-2 space-y-2">
                   <input
-                    className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
                     inputMode="numeric"
                     maxLength={4}
-                    placeholder="0000"
+                    placeholder="Current PIN"
                     type="password"
-                    value={pin}
+                    value={currentPin}
                     onChange={(event) => {
-                      setPin(event.target.value.replace(/\D/g, ""));
+                      setCurrentPin(event.target.value.replace(/\D/g, ""));
                       setPinMessage("");
+                    }}
+                  />
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <input
+                      className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="New PIN"
+                      type="password"
+                      value={pin}
+                      onChange={(event) => {
+                        setPin(event.target.value.replace(/\D/g, ""));
+                        setPinMessage("");
+                      }}
+                    />
+                    <button
+                      className="rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!isFourDigitPin(pin) || isSaving}
+                      type="submit"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+                {pinMessage ? (
+                  <p className="mt-2 text-xs font-bold text-slate-600">
+                    {pinMessage}
+                  </p>
+                ) : null}
+              </form>
+            ) : null}
+
+            {showEmailForm ? (
+              <form className="mt-4 rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-100" onSubmit={handleEmailSubmit}>
+                <p className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">
+                  Email reminders
+                </p>
+                {emailReminder ? (
+                  <p className="mt-2 rounded-2xl bg-cyan-100 px-3 py-2 text-sm font-bold text-cyan-950 ring-1 ring-cyan-200">
+                    {emailReminder}
+                  </p>
+                ) : null}
+                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                  <input
+                    className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold outline-none focus:border-slate-950"
+                    inputMode="email"
+                    placeholder="you@example.com"
+                    type="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setEmailMessage("");
                     }}
                   />
                   <button
                     className="rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={!isFourDigitPin(pin) || isSaving}
+                    disabled={!isValidEmail(email.trim()) || isSaving}
                     type="submit"
                   >
                     Save
                   </button>
                 </div>
-                {pinMessage ? (
+                <input
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="Current PIN"
+                  type="password"
+                  value={currentPin}
+                  onChange={(event) => {
+                    setCurrentPin(event.target.value.replace(/\D/g, ""));
+                    setEmailMessage("");
+                  }}
+                />
+                <div className="mt-3 space-y-2">
+                  <label className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+                    <span>Morning task emails</span>
+                    <input
+                      checked={user.emailRemindersEnabled ?? true}
+                      disabled={isSaving}
+                      type="checkbox"
+                      onChange={(event) =>
+                        handleEmailPreferenceChange({
+                          emailRemindersEnabled: event.target.checked,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+                    <span>Evening pending follow-up</span>
+                    <input
+                      checked={user.eveningRemindersEnabled ?? true}
+                      disabled={isSaving || !(user.emailRemindersEnabled ?? true)}
+                      type="checkbox"
+                      onChange={(event) =>
+                        handleEmailPreferenceChange({
+                          eveningRemindersEnabled: event.target.checked,
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+                {emailMessage ? (
                   <p className="mt-2 text-xs font-bold text-slate-600">
-                    {pinMessage}
+                    {emailMessage}
                   </p>
                 ) : null}
               </form>
@@ -252,8 +448,8 @@ export function UserColorPicker({
           setIsManuallyOpen(true);
         }}
         aria-expanded={isOpen}
-        aria-label={`Edit ${user.name}'s color`}
-        title="Edit color"
+        aria-label={`Edit ${user.name}'s profile settings`}
+        title="Edit profile settings"
       >
         <UserAvatar user={user} size={size} />
       </button>

@@ -111,3 +111,44 @@ export async function updateStoredUserColor(userId: string, color: string) {
 
   return getStoredHouseUsers();
 }
+
+export async function updateStoredUserEmail(userId: string, email: string) {
+  if (!sql) {
+    throw new Error("DATABASE_URL is not configured.");
+  }
+
+  await ensureCalendarTables();
+  await sql`
+    update house_users
+    set email = ${email}, updated_at = now()
+    where id = ${userId}
+  `;
+
+  return getStoredHouseUsers();
+}
+
+export async function updateStoredUserEmailPreferences({
+  userId,
+  emailRemindersEnabled,
+  eveningRemindersEnabled,
+}: {
+  userId: string;
+  emailRemindersEnabled?: boolean;
+  eveningRemindersEnabled?: boolean;
+}) {
+  if (!sql) {
+    throw new Error("DATABASE_URL is not configured.");
+  }
+
+  await ensureCalendarTables();
+  await sql`
+    update house_users
+    set
+      email_reminders_enabled = coalesce(${emailRemindersEnabled ?? null}, email_reminders_enabled),
+      evening_reminders_enabled = coalesce(${eveningRemindersEnabled ?? null}, evening_reminders_enabled),
+      updated_at = now()
+    where id = ${userId}
+  `;
+
+  return getStoredHouseUsers();
+}

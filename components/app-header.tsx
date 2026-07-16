@@ -4,11 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { LoggedInUser } from "@/lib/auth";
-import { clearLoggedInUser, saveLoggedInUser } from "@/lib/auth";
+import { clearLoggedInUser, getUserRequestHeaders, saveLoggedInUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserColorPicker } from "@/components/user-color-picker";
 
 type UsersResponse = {
+  users?: LoggedInUser[];
   message?: string;
 };
 
@@ -43,6 +44,7 @@ export function AppHeader({
     dismissed: false,
   });
   const navItems = user?.role === "admin" ? adminNavItems : memberNavItems;
+  const needsEmail = Boolean(user && (user.mustAddEmail || !user.email));
   const dismissedPinReminder =
     pinReminderState.userId === user?.id && pinReminderState.dismissed;
 
@@ -56,15 +58,15 @@ export function AppHeader({
     onUserChange(nextUser);
   }
 
-  async function updateCurrentUserPin(pin: string) {
+  async function updateCurrentUserPin(pin: string, currentPin: string) {
     if (!user) {
       return;
     }
 
     const response = await fetch("/api/users", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id, pin }),
+      headers: { "Content-Type": "application/json", ...getUserRequestHeaders(user) },
+      body: JSON.stringify({ userId: user.id, pin, currentPin }),
     });
     const result = (await response.json()) as UsersResponse;
 
@@ -74,6 +76,47 @@ export function AppHeader({
 
     updateCurrentUser({ ...user, mustChangePin: false });
     setPinReminderState({ dismissed: false, userId: user.id });
+  }
+
+  async function updateCurrentUserEmail(email: string, currentPin: string) {
+    if (!user) {
+      return;
+    }
+
+    const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...getUserRequestHeaders(user) },
+      body: JSON.stringify({ userId: user.id, email, currentPin }),
+    });
+    const result = (await response.json()) as UsersResponse;
+
+    if (!response.ok) {
+      throw new Error(result.message ?? "Email update failed.");
+    }
+
+    updateCurrentUser({ ...user, email, mustAddEmail: false });
+  }
+
+  async function updateCurrentUserEmailPreferences(preferences: {
+    emailRemindersEnabled?: boolean;
+    eveningRemindersEnabled?: boolean;
+  }, currentPin: string) {
+    if (!user) {
+      return;
+    }
+
+    const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...getUserRequestHeaders(user) },
+      body: JSON.stringify({ userId: user.id, ...preferences, currentPin }),
+    });
+    const result = (await response.json()) as UsersResponse;
+
+    if (!response.ok) {
+      throw new Error(result.message ?? "Email settings update failed.");
+    }
+
+    updateCurrentUser({ ...user, ...preferences });
   }
 
   return (
@@ -109,10 +152,20 @@ export function AppHeader({
               onUserChange={updateCurrentUser}
               showPinForm
               onPinChange={updateCurrentUserPin}
-              forceOpen={Boolean(user.mustChangePin && !dismissedPinReminder)}
+              showEmailForm
+              onEmailChange={updateCurrentUserEmail}
+              onEmailPreferencesChange={updateCurrentUserEmailPreferences}
+              forceOpen={Boolean(
+                (user.mustChangePin || needsEmail) && !dismissedPinReminder,
+              )}
               pinReminder={
                 user.mustChangePin
                   ? "Your PIN is still 0000. Please choose a private PIN."
+                  : undefined
+              }
+              emailReminder={
+                needsEmail
+                  ? "Add your email to receive task reminders. You can turn reminders off anytime."
                   : undefined
               }
               onClose={() =>
