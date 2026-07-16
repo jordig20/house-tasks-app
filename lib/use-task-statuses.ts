@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getLoggedInUser } from "@/lib/auth";
 import type { CleaningTask, TaskStatus } from "@/lib/tasks";
 import { getTaskCompletionKey } from "@/lib/tasks";
@@ -38,6 +38,18 @@ export function rollbackStatusUpdate(
   return nextStatuses;
 }
 
+export function rollbackStatusUpdateToConfirmed(
+  currentStatuses: TaskStatusMap,
+  confirmedStatuses: TaskStatusMap,
+  statusKey: string,
+) {
+  return rollbackStatusUpdate(
+    currentStatuses,
+    statusKey,
+    confirmedStatuses[statusKey],
+  );
+}
+
 function getStatusUpdateErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
@@ -46,7 +58,8 @@ function getStatusUpdateErrorMessage(error: unknown) {
 
 export function useTaskStatuses(tasks: CleaningTask[]) {
   const [statuses, setStatuses] = useState<TaskStatusMap>({});
-  const [confirmedStatuses, setConfirmedStatuses] = useState<TaskStatusMap>({});
+  const [, setConfirmedStatuses] = useState<TaskStatusMap>({});
+  const confirmedStatusesRef = useRef<TaskStatusMap>({});
   const [pendingStatusKeys, setPendingStatusKeys] = useState<string[]>([]);
   const [statusUpdateError, setStatusUpdateError] =
     useState<StatusUpdateError | null>(null);
@@ -61,8 +74,11 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
         const result = (await response.json()) as TaskStatusesResponse;
 
         if (isMounted) {
-          setStatuses(result.statuses ?? {});
-          setConfirmedStatuses(result.statuses ?? {});
+          const loadedStatuses = result.statuses ?? {};
+
+          confirmedStatusesRef.current = loadedStatuses;
+          setStatuses(loadedStatuses);
+          setConfirmedStatuses(loadedStatuses);
         }
       } finally {
         if (isMounted) {
@@ -84,8 +100,6 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
     task?: CleaningTask,
     date = task?.date,
   ) {
-    const previousStatus = confirmedStatuses[statusKey];
-
     setStatuses((currentStatuses) =>
       applyOptimisticStatusUpdate(currentStatuses, statusKey, status),
     );
@@ -122,13 +136,25 @@ export function useTaskStatuses(tasks: CleaningTask[]) {
             );
           }
 
-          setConfirmedStatuses((currentStatuses) =>
-            applyOptimisticStatusUpdate(currentStatuses, statusKey, status),
-          );
+          setConfirmedStatuses((currentStatuses) => {
+            const nextConfirmedStatuses = applyOptimisticStatusUpdate(
+              currentStatuses,
+              statusKey,
+              status,
+            );
+
+            confirmedStatusesRef.current = nextConfirmedStatuses;
+
+            return nextConfirmedStatuses;
+          });
         })
         .catch((error: unknown) => {
           setStatuses((currentStatuses) =>
-            rollbackStatusUpdate(currentStatuses, statusKey, previousStatus),
+            rollbackStatusUpdateToConfirmed(
+              currentStatuses,
+              confirmedStatusesRef.current,
+              statusKey,
+            ),
           );
           setStatusUpdateError({
             statusKey,

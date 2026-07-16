@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyOptimisticStatusUpdate,
   rollbackStatusUpdate,
+  rollbackStatusUpdateToConfirmed,
 } from "@/lib/use-task-statuses";
 import type { TaskStatus } from "@/lib/tasks";
 
@@ -32,5 +33,34 @@ describe("status update resilience", () => {
     };
 
     expect(rollbackStatusUpdate(statuses, "task-1:2026-07-16")).toEqual({});
+  });
+
+  it("rolls rapid successive failures back to the latest confirmed status", () => {
+    const statusKey = "task-1:2026-07-16";
+    const stalePreRequestStatuses: Record<string, TaskStatus> = {
+      [statusKey]: "pending",
+    };
+    const afterEarlierSuccess = applyOptimisticStatusUpdate(
+      stalePreRequestStatuses,
+      statusKey,
+      "done",
+    );
+    const confirmedAfterEarlierSuccess = { [statusKey]: "done" } satisfies Record<
+      string,
+      TaskStatus
+    >;
+    const afterLaterOptimisticUpdate = applyOptimisticStatusUpdate(
+      afterEarlierSuccess,
+      statusKey,
+      "skipped",
+    );
+
+    expect(
+      rollbackStatusUpdateToConfirmed(
+        afterLaterOptimisticUpdate,
+        confirmedAfterEarlierSuccess,
+        statusKey,
+      ),
+    ).toEqual({ [statusKey]: "done" });
   });
 });
