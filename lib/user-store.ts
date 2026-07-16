@@ -11,6 +11,9 @@ type HouseUserRow = {
   role: HouseUser["role"];
   pin: string;
   color: string | null;
+  email: string | null;
+  email_reminders_enabled: boolean;
+  evening_reminders_enabled: boolean;
 };
 
 function rowToUser(row: HouseUserRow): HouseUser {
@@ -20,6 +23,9 @@ function rowToUser(row: HouseUserRow): HouseUser {
     role: row.role,
     pin: row.pin,
     color: row.color ?? undefined,
+    email: row.email ?? undefined,
+    emailRemindersEnabled: row.email_reminders_enabled,
+    eveningRemindersEnabled: row.evening_reminders_enabled,
   };
 }
 
@@ -44,7 +50,7 @@ export async function getStoredHouseUsers() {
   `;
 
   const rows = (await sql`
-    select id, name, role, pin, color
+    select id, name, role, pin, color, email, email_reminders_enabled, evening_reminders_enabled
     from house_users
     where is_active = true
     order by case when role = 'admin' then 0 else 1 end, name asc
@@ -66,7 +72,11 @@ export async function validateStoredLogin(userId: string, pin: string) {
     name: user.name,
     role: user.role,
     color: user.color,
+    email: user.email,
+    emailRemindersEnabled: user.emailRemindersEnabled,
+    eveningRemindersEnabled: user.eveningRemindersEnabled,
     mustChangePin: user.pin === defaultMemberPin,
+    mustAddEmail: !user.email,
   };
 
   return loggedInUser;

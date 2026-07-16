@@ -140,11 +140,26 @@ export async function ensureCalendarTables() {
       role text not null default 'member',
       pin text not null default '0000',
       color text,
+      email text,
+      email_reminders_enabled boolean not null default true,
+      evening_reminders_enabled boolean not null default true,
       source text not null default 'calendar',
       is_active boolean not null default true,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     )
+  `;
+  await sql`
+    alter table house_users
+    add column if not exists email text
+  `;
+  await sql`
+    alter table house_users
+    add column if not exists email_reminders_enabled boolean not null default true
+  `;
+  await sql`
+    alter table house_users
+    add column if not exists evening_reminders_enabled boolean not null default true
   `;
   await sql`
     create table if not exists task_statuses (

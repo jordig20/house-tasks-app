@@ -6,6 +6,9 @@ export type HouseUser = {
   role: UserRole;
   pin: string;
   color?: string;
+  email?: string;
+  emailRemindersEnabled?: boolean;
+  eveningRemindersEnabled?: boolean;
 };
 
 export type TaskStatus = "pending" | "done" | "skipped";
