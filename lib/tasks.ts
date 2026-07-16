@@ -12,6 +12,16 @@ export type TaskStatus = "pending" | "done" | "skipped";
 export type TaskKind = "bathroom" | "trash" | "other";
 export type TaskCompletionMode = "event" | "daily";
 
+import {
+  getLocalDateKey,
+  getTaskCompletionKey,
+  getTaskDisplayEndDate,
+  isTaskMultiDay,
+  parseTaskDate,
+} from "@/lib/task-instances";
+
+export { getLocalDateKey, getTaskCompletionKey, parseTaskDate };
+
 export type CleaningTask = {
   id: string;
   googleEventId: string;
@@ -127,45 +137,12 @@ const taskDateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
-export function getLocalDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function parseTaskDate(value: string) {
-  return new Date(value.includes("T") ? value : `${value}T00:00:00`);
-}
-
-function getDisplayEndDate(task: CleaningTask) {
-  const endDate = parseTaskDate(task.end);
-
-  if (task.isAllDay) {
-    endDate.setDate(endDate.getDate() - 1);
-  }
-
-  return endDate;
-}
-
 export function isMultiDayTask(task: CleaningTask) {
-  const startDate = parseTaskDate(task.start);
-  const endDate = getDisplayEndDate(task);
-
-  return startDate.toDateString() !== endDate.toDateString();
+  return isTaskMultiDay(task);
 }
 
 export function getTaskCompletionMode(task: Pick<CleaningTask, "taskKind">) {
   return task.taskKind === "trash" ? "daily" : "event";
-}
-
-export function getTaskCompletionKey(task: CleaningTask, date = task.date) {
-  if (task.completionMode === "daily") {
-    return `daily:${task.id}:${date}`;
-  }
-
-  return `event:${task.id}`;
 }
 
 export function getTaskDateRangeLabel(task: CleaningTask) {
@@ -174,7 +151,7 @@ export function getTaskDateRangeLabel(task: CleaningTask) {
   }
 
   const startDate = parseTaskDate(task.start);
-  const endDate = getDisplayEndDate(task);
+  const endDate = getTaskDisplayEndDate(task);
 
   return `${taskDateFormatter.format(startDate)} - ${taskDateFormatter.format(endDate)}`;
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
 import { TaskKindIcon } from "@/components/task-kind-icon";
+import { getTaskInstances, parseTaskDate } from "@/lib/task-instances";
 import {
   getLocalDateKey,
   type CleaningTask,
@@ -44,20 +45,6 @@ function getDateKey(date: Date) {
   return getLocalDateKey(date);
 }
 
-function parseTaskDate(value: string) {
-  return new Date(value.includes("T") ? value : `${value}T00:00:00`);
-}
-
-function getTaskDisplayEnd(task: CleaningTask) {
-  const end = parseTaskDate(task.end);
-
-  if (task.isAllDay) {
-    end.setDate(end.getDate() - 1);
-  }
-
-  return end;
-}
-
 function getCalendarDays(monthStart: string) {
   const firstDay = parseTaskDate(monthStart);
   const start = new Date(firstDay);
@@ -79,17 +66,10 @@ function getCalendarDays(monthStart: string) {
 }
 
 function taskTouchesDay(task: CleaningTask, day: Date) {
-  const dayStart = new Date(day);
-  dayStart.setHours(0, 0, 0, 0);
-
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
-
-  const taskStart = parseTaskDate(task.start);
-  const taskEnd = getTaskDisplayEnd(task);
-  taskEnd.setHours(23, 59, 59, 999);
-
-  return taskStart < dayEnd && taskEnd >= dayStart;
+  return getTaskInstances(task, {
+    startKey: getDateKey(day),
+    endKey: getDateKey(day),
+  }).length > 0;
 }
 
 function getTaskMonthLabel(task: CleaningTask) {

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { TaskCard } from "@/components/task-card";
 import { getLoggedInUser, type LoggedInUser } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
+import { getTaskInstances } from "@/lib/task-instances";
 import { useTaskStatuses } from "@/lib/use-task-statuses";
-import { getLocalDateKey, type CleaningTask, type TaskStatus } from "@/lib/tasks";
+import { type CleaningTask, type TaskStatus } from "@/lib/tasks";
 
 const taskTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -23,20 +24,6 @@ function getTaskStartLabel(task: CleaningTask) {
   }
 
   return taskTimeFormatter.format(new Date(task.start));
-}
-
-function parseTaskDate(value: string) {
-  return new Date(value.includes("T") ? value : `${value}T00:00:00`);
-}
-
-function getDisplayEndDate(task: CleaningTask) {
-  const endDate = parseTaskDate(task.end);
-
-  if (task.isAllDay) {
-    endDate.setDate(endDate.getDate() - 1);
-  }
-
-  return endDate;
 }
 
 function getTaskNextLabel(task: CleaningTask, dateKey: string, todayKey: string) {
@@ -95,34 +82,12 @@ export function TodayTasks({
   const showCalendarChip = new Set(tasks.map((task) => task.calendarName)).size > 1;
   const nextTask = visibleUpcomingTasks
     .flatMap<UpcomingTask>((task) => {
-      if (task.completionMode !== "daily") {
-        return [
-          {
-            ...task,
-            dateKey: task.date,
-            sortTime: new Date(task.start).getTime(),
-            status: getTaskStatus(task),
-          },
-        ];
-      }
-
-      const endDate = getDisplayEndDate(task);
-      const currentDate = parseTaskDate(task.start);
-      const instances: UpcomingTask[] = [];
-
-      while (currentDate <= endDate) {
-        const dateKey = getLocalDateKey(currentDate);
-
-        instances.push({
+      return getTaskInstances(task).map(({ dateKey, sortTime }) => ({
           ...task,
           dateKey,
-          sortTime: currentDate.getTime(),
+          sortTime,
           status: getTaskStatus(task, dateKey),
-        });
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-
-      return instances;
+        }));
     })
     .filter((task) => task.dateKey >= todayKey && task.status !== "done")
     .sort(

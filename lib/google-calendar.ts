@@ -14,6 +14,7 @@ import {
   parseCalendarTaskTitle,
   type CleaningTask,
 } from "@/lib/tasks";
+import { taskOverlapsDateRange } from "@/lib/task-instances";
 
 export type ConfiguredCalendar = {
   calendarName: string;
@@ -122,26 +123,11 @@ function getDateOnly(value: string) {
   return value.includes("T") ? value.slice(0, 10) : value;
 }
 
-function getPreviousDateKey(value: string) {
-  const date = new Date(`${value}T00:00:00`);
-  date.setDate(date.getDate() - 1);
-
-  return getDateOnly(date.toISOString());
-}
-
-function getTaskVisibleEndKey(task: CleaningTask) {
-  const endKey = getDateOnly(task.end);
-
-  return task.isAllDay ? getPreviousDateKey(endKey) : endKey;
-}
-
 function taskOverlapsRange(task: CleaningTask, start: Date, end: Date) {
-  const rangeStartKey = getBanffDateKey(start);
-  const rangeEndExclusiveKey = getBanffDateKey(end);
-  const taskStartKey = getDateOnly(task.start);
-  const taskEndKey = getTaskVisibleEndKey(task);
-
-  return taskStartKey < rangeEndExclusiveKey && taskEndKey >= rangeStartKey;
+  return taskOverlapsDateRange(task, {
+    startKey: getBanffDateKey(start),
+    endExclusiveKey: getBanffDateKey(end),
+  });
 }
 
 function normalizeCalendarEvent(

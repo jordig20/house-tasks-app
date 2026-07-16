@@ -6,6 +6,11 @@ import {
   getBanffWeekRange,
 } from "@/lib/banff-time";
 import {
+  getTaskInstances,
+  getResolvedTaskStatus,
+  taskOverlapsDateRange,
+} from "@/lib/task-instances";
+import {
   getTaskCompletionKey,
   getTaskDateRangeLabel,
   isMultiDayTask,
@@ -87,5 +92,60 @@ describe("task instance characterization", () => {
     expect(getTaskCompletionKey(multiDayTask, "2026-07-16")).toBe(
       "daily:task-1:2026-07-16",
     );
+  });
+
+  it("expands shared task instances with per-day status keys", () => {
+    const multiDayTask = task();
+
+    expect(
+      getTaskInstances(multiDayTask, {
+        startKey: "2026-07-16",
+        endKey: "2026-07-17",
+      }).map((instance) => ({
+        dateKey: instance.dateKey,
+        statusKey: instance.statusKey,
+      })),
+    ).toEqual([
+      { dateKey: "2026-07-16", statusKey: "daily:task-1:2026-07-16" },
+      { dateKey: "2026-07-17", statusKey: "daily:task-1:2026-07-17" },
+    ]);
+  });
+
+  it("uses event status keys across expanded event instances", () => {
+    const eventTask = task({ completionMode: "event", taskKind: "bathroom" });
+
+    expect(
+      getTaskInstances(eventTask).map((instance) => instance.statusKey),
+    ).toEqual(["event:task-1", "event:task-1", "event:task-1"]);
+  });
+
+  it("resolves daily task status from shared status maps", () => {
+    const multiDayTask = task();
+
+    expect(
+      getResolvedTaskStatus(multiDayTask, "2026-07-16", {
+        "daily:task-1:2026-07-16": "done",
+      }),
+    ).toBe("done");
+    expect(getResolvedTaskStatus(multiDayTask, "2026-07-17", {})).toBe(
+      "pending",
+    );
+  });
+
+  it("checks task overlap against date ranges with exclusive range ends", () => {
+    const multiDayTask = task();
+
+    expect(
+      taskOverlapsDateRange(multiDayTask, {
+        startKey: "2026-07-17",
+        endExclusiveKey: "2026-07-18",
+      }),
+    ).toBe(true);
+    expect(
+      taskOverlapsDateRange(multiDayTask, {
+        startKey: "2026-07-18",
+        endExclusiveKey: "2026-07-19",
+      }),
+    ).toBe(false);
   });
 });
