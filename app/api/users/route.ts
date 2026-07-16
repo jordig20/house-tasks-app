@@ -4,11 +4,18 @@ import {
   updateStoredUserColor,
   updateStoredUserPin,
 } from "@/lib/user-store";
+import type { HouseUser } from "@/lib/tasks";
+
+type PublicHouseUser = Pick<HouseUser, "id" | "name" | "role" | "color">;
+
+function toPublicUsers(users: HouseUser[]): PublicHouseUser[] {
+  return users.map(({ id, name, role, color }) => ({ id, name, role, color }));
+}
 
 export async function GET() {
   const users = await getStoredHouseUsers();
 
-  return NextResponse.json({ users });
+  return NextResponse.json({ users: toPublicUsers(users) });
 }
 
 export async function PATCH(request: Request) {
