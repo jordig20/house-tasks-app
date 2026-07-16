@@ -172,6 +172,35 @@ export async function ensureCalendarTables() {
     )
   `;
   await sql`
+    create table if not exists task_email_notifications (
+      id text primary key,
+      user_id text not null,
+      date_key text not null,
+      reminder_type text not null,
+      task_count integer not null,
+      attempted_at timestamptz not null default now(),
+      sent_at timestamptz,
+      delivery_status text not null default 'sent',
+      last_error text
+    )
+  `;
+  await sql`
+    alter table task_email_notifications
+    add column if not exists attempted_at timestamptz not null default now()
+  `;
+  await sql`
+    alter table task_email_notifications
+    alter column sent_at drop not null
+  `;
+  await sql`
+    alter table task_email_notifications
+    add column if not exists delivery_status text not null default 'sent'
+  `;
+  await sql`
+    alter table task_email_notifications
+    add column if not exists last_error text
+  `;
+  await sql`
     create index if not exists calendar_tasks_date_range_idx
     on calendar_tasks (date_key, visible_end_key)
   `;
