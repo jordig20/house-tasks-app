@@ -159,7 +159,7 @@ export function MonthCalendar({
       </section>
 
       <section className="surface-card overflow-hidden">
-        <div className="overflow-x-auto border-b border-slate-200 bg-slate-50">
+        <div className="hidden overflow-x-auto border-b border-slate-200 bg-slate-50 sm:block">
           <div className="grid min-w-[42rem] grid-cols-7 text-center font-ui text-[0.68rem] font-black uppercase tracking-wide text-slate-500 sm:min-w-0 sm:text-xs">
             {weekdayLabels.map((day) => (
               <div key={day} className="px-1 py-3">
@@ -169,7 +169,94 @@ export function MonthCalendar({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="sm:hidden">
+          <div className="divide-y divide-slate-200">
+            {days.map((day) => {
+              const dayKey = getDateKey(day);
+              const dayTasks = tasks
+                .filter((task) => taskTouchesDay(task, day))
+                .map((task) => ({
+                  ...task,
+                  status: getTaskStatus(task, dayKey),
+                }));
+              const isCurrentMonth = day.getMonth() === currentMonth;
+              const isToday = dayKey === todayKey;
+              const isPastDay = dayKey < todayKey;
+
+              return (
+                <div
+                  key={dayKey}
+                  className={`p-4 ${isToday ? "bg-cyan-50" : isPastDay ? "bg-slate-50" : isCurrentMonth ? "bg-white" : "bg-slate-50"}`}
+                >
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className={`font-ui text-xs font-black uppercase tracking-wide ${isPastDay || !isCurrentMonth ? "text-slate-400" : "text-cyan-700"}`}>
+                        {weekdayLabels[day.getDay()]}
+                      </p>
+                      <p className={`mt-0.5 font-display text-xl font-bold ${isPastDay || !isCurrentMonth ? "text-slate-400" : "text-slate-950"}`}>
+                        {dayFormatter.format(day)}
+                      </p>
+                    </div>
+                    {isToday ? (
+                      <span className="rounded-full bg-slate-950 px-3 py-1 font-ui text-xs font-black text-white">
+                        Today
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {dayTasks.length > 0 ? (
+                    <div className="space-y-2">
+                      {dayTasks.map((task) => {
+                        const canUpdate =
+                          !!user &&
+                          dayKey <= todayKey &&
+                          (user.role === "admin" ||
+                            task.assignedUserIds.includes(user.id));
+                        const nextStatus = nextStatuses[task.status];
+                        const taskStyles = isPastDay
+                          ? pastStatusStyles[task.status]
+                          : statusStyles[task.status];
+                        const disabledTitle =
+                          dayKey > todayKey
+                            ? "Future tasks can be updated once the day arrives."
+                            : `${getTaskMonthLabel(task)} - assigned to ${task.assignedTo.join(", ")}`;
+
+                        return (
+                          <button
+                            key={`${dayKey}-${task.id}`}
+                            type="button"
+                            className={`flex min-h-11 w-full items-center gap-2 rounded-xl px-3 py-2 text-left font-ui text-sm font-black ring-1 transition ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
+                            title={
+                              canUpdate
+                                ? `${getTaskMonthLabel(task)} - click for ${statusLabels[nextStatus]}`
+                                : disabledTitle
+                            }
+                            disabled={!canUpdate}
+                            onClick={() => updateTaskStatus(task, nextStatus, dayKey)}
+                          >
+                            <TaskKindIcon task={task} />
+                            <span className="min-w-0 flex-1 truncate">
+                              {task.status === "done" ? "Done: " : ""}
+                              {task.status === "skipped" ? "Skipped: " : ""}
+                              {getTaskMonthLabel(task)}
+                            </span>
+                            <span className="shrink-0 text-xs uppercase opacity-70">
+                              {statusLabels[task.status]}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="font-ui text-sm text-slate-400">No tasks</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="hidden overflow-x-auto sm:block">
           <div className="grid min-w-[42rem] grid-cols-7 sm:min-w-0">
           {days.map((day) => {
             const dayKey = getDateKey(day);
