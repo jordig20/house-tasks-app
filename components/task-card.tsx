@@ -22,7 +22,7 @@ export function TaskCard({
   const currentStatus = status ?? task.status;
 
   return (
-    <article className="surface-card p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="surface-card p-4 transition hover:shadow-md sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="font-display text-lg font-bold leading-snug text-slate-950">{task.title}</h3>
@@ -42,7 +42,7 @@ export function TaskCard({
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {task.assignedTo.length > 0 ? (
                 task.assignedTo.map((person) => (
-                  <span key={person} className="inline-flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-sm font-bold text-slate-950 shadow-sm ring-1 ring-slate-200">
+                  <span key={person} className="inline-flex items-center gap-2 rounded-lg bg-white py-1 pl-1 pr-3 text-sm font-bold text-slate-950 shadow-sm ring-1 ring-slate-200">
                     <UserAvatar user={{ name: person, role: "member" }} size="sm" />
                     {person}
                   </span>

@@ -14,7 +14,7 @@ const statusLabels: Record<TaskStatus, string> = {
 
 export function StatusBadge({ status }: { status: TaskStatus }) {
   return (
-    <span className={`inline-flex min-h-7 items-center rounded-full px-3 py-1 font-ui text-xs font-bold ring-1 ${statusStyles[status]}`}>
+    <span className={`inline-flex min-h-7 items-center rounded-lg px-3 py-1 font-ui text-xs font-bold ring-1 ${statusStyles[status]}`}>
       <span aria-hidden="true" className="mr-1.5">{status === "done" ? "✓" : status === "skipped" ? "–" : "•"}</span>
       {statusLabels[status]}
     </span>

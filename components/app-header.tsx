@@ -120,11 +120,11 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-white/70 bg-slate-50/90 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0">
+    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-slate-200/80 bg-[color:rgba(244,247,245,0.94)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0 sm:py-3">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
         <div className="flex items-center gap-6">
           <BrandLogo compact />
-          <nav className="hidden items-center gap-1 rounded-full border border-slate-200 bg-white/80 p-1 shadow-sm backdrop-blur sm:flex">
+          <nav className="hidden items-center gap-1 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-sm sm:flex">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
 
@@ -132,7 +132,7 @@ export function AppHeader({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-full px-3 py-2.5 font-ui text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
+                  className={`rounded-lg px-3 py-2.5 font-ui text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
                 >
                   {item.label}
                 </Link>

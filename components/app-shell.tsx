@@ -34,10 +34,10 @@ export function AppShell({
   const isDenied = isReady && !!user && requireAdmin && user.role !== "admin";
 
   return (
-    <main className="min-h-screen bg-transparent px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
+    <main className="min-h-screen bg-transparent px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-slate-950 sm:px-6 sm:pb-10">
       <AppHeader user={user} onUserChange={setUser} />
       <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
-        <header className="mb-7">
+        <header className="mb-6 pt-1 sm:mb-7 sm:pt-0">
           <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">
             {eyebrow}
           </p>
@@ -47,7 +47,8 @@ export function AppShell({
         </header>
 
         {!isReady ? (
-          <div className="surface-card p-5 text-slate-600">
+          <div className="surface-card flex items-center gap-3 p-5 text-slate-600" role="status" aria-live="polite">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-cyan-500" aria-hidden="true" />
             Loading house...
           </div>
         ) : needsLogin ? (

@@ -24,6 +24,7 @@ body {
     linear-gradient(180deg, var(--canvas) 0%, #eaf0ec 100%);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   color: var(--text);
+  min-width: 320px;
 }
 
 * {
@@ -45,8 +46,8 @@ select {
 .surface-card {
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   border: 1px solid var(--border);
-  border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(33, 51, 35, 0.08);
+  border-radius: 1.125rem;
+  box-shadow: 0 8px 24px rgba(33, 51, 35, 0.07);
 }
 
 .surface-subtle {
@@ -58,6 +59,20 @@ select {
 .action-primary {
   background: var(--action);
   color: var(--action-contrast);
+}
+
+:where(button, a) {
+  transition: background-color 160ms ease, border-color 160ms ease,
+    box-shadow 160ms ease, color 160ms ease, opacity 160ms ease,
+    transform 160ms ease;
+}
+
+:where(button, a):active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .status-message {
