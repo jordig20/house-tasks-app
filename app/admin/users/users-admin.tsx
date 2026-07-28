@@ -251,7 +251,7 @@ export function UsersAdmin() {
 
   return (
     <>
-      <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
+      <section className="surface-card mb-5 p-5">
         <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">Calendar roster</p>
         <h2 className="mt-2 font-display text-xl font-bold">Users come from assigned calendar tasks</h2>
         <p className="mt-2 text-sm text-slate-600">
@@ -279,7 +279,7 @@ export function UsersAdmin() {
       </section>
 
       {hasLoadedAdminUsers ? (
-        <section className="mb-5 rounded-[2rem] bg-white p-5 shadow-sm">
+        <section className="surface-card mb-5 p-5">
           <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">Reminder email lab</p>
           <h2 className="mt-2 font-display text-xl font-bold">Preview and test-send reminder emails</h2>
           <p className="mt-2 text-sm text-slate-600">

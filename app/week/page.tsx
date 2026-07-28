@@ -11,7 +11,7 @@ function CalendarWarnings({ warnings }: { warnings: string[] }) {
   }
 
   return (
-    <section className="mb-5 rounded-[2rem] bg-amber-50 p-4 text-sm font-bold text-amber-900 ring-1 ring-amber-200">
+    <section role="status" className="status-message mb-5 border border-amber-200 bg-amber-50 p-4 text-amber-900">
       {warnings.join(" ")}
     </section>
   );

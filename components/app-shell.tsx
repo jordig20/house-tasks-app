@@ -37,7 +37,7 @@ export function AppShell({
     <main className="min-h-screen bg-transparent px-4 pb-28 text-slate-950 sm:px-6 sm:pb-10">
       <AppHeader user={user} onUserChange={setUser} />
       <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
-        <header className="mb-6">
+        <header className="mb-7">
           <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">
             {eyebrow}
           </p>
@@ -47,11 +47,11 @@ export function AppShell({
         </header>
 
         {!isReady ? (
-          <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 text-slate-600 shadow-sm backdrop-blur">
+          <div className="surface-card p-5 text-slate-600">
             Loading house...
           </div>
         ) : needsLogin ? (
-          <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
+          <section className="surface-card p-6 text-center">
             <h2 className="mt-3 font-display text-2xl font-bold">Log in to continue</h2>
             <p className="mt-2 text-slate-600">
               Choose Admin or a calendar assignee and enter the matching PIN to
@@ -62,7 +62,7 @@ export function AppShell({
             </Link>
           </section>
         ) : isDenied ? (
-          <section className="rounded-[2rem] bg-white p-6 text-center shadow-soft">
+          <section className="surface-card p-6 text-center">
             <h2 className="mt-3 font-display text-2xl font-bold">Admin access only</h2>
             <p className="mt-2 text-slate-600">
               Log in as Admin to manage house members from calendar tasks.

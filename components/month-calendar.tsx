@@ -25,9 +25,9 @@ const statusStyles: Record<TaskStatus, string> = {
   skipped: "bg-slate-300 text-slate-900 ring-slate-400",
 };
 const pastStatusStyles: Record<TaskStatus, string> = {
-  pending: "bg-amber-100/80 text-amber-900/75 ring-amber-200/75",
-  done: "bg-emerald-100/80 text-emerald-900/75 ring-emerald-200/75 line-through",
-  skipped: "bg-slate-200/80 text-slate-700/75 ring-slate-300/75",
+  pending: "bg-amber-100 text-amber-900 ring-amber-200",
+  done: "bg-emerald-100 text-emerald-900 ring-emerald-200 line-through",
+  skipped: "bg-slate-200 text-slate-900 ring-slate-300",
 };
 const nextStatuses: Record<TaskStatus, TaskStatus> = {
   pending: "done",
@@ -134,7 +134,7 @@ export function MonthCalendar({
         </p>
       ) : null}
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+      <section className="surface-card p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="font-ui text-sm font-bold uppercase tracking-[0.18em] text-cyan-700">
@@ -158,16 +158,19 @@ export function MonthCalendar({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] bg-white/95 shadow-sm ring-1 ring-slate-200 backdrop-blur">
-        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center font-ui text-[0.68rem] font-black uppercase tracking-wide text-slate-500 sm:text-xs">
-          {weekdayLabels.map((day) => (
-            <div key={day} className="px-1 py-3">
-              {day}
-            </div>
-          ))}
+      <section className="surface-card overflow-hidden">
+        <div className="overflow-x-auto border-b border-slate-200 bg-slate-50">
+          <div className="grid min-w-[42rem] grid-cols-7 text-center font-ui text-[0.68rem] font-black uppercase tracking-wide text-slate-500 sm:min-w-0 sm:text-xs">
+            {weekdayLabels.map((day) => (
+              <div key={day} className="px-1 py-3">
+                {day}
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-7">
+        <div className="overflow-x-auto">
+          <div className="grid min-w-[42rem] grid-cols-7 sm:min-w-0">
           {days.map((day) => {
             const dayKey = getDateKey(day);
             const dayTasks = tasks
@@ -213,7 +216,7 @@ export function MonthCalendar({
                       <button
                         key={`${dayKey}-${task.id}`}
                         type="button"
-                        className={`inline-flex min-h-5 max-w-full items-center justify-center rounded-full px-1.5 py-0.5 font-ui text-[0.62rem] font-black ring-1 transition sm:w-full sm:rounded-md sm:px-1.5 sm:py-1 sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
+                        className={`inline-flex min-h-8 max-w-full items-center justify-center rounded-full px-1.5 py-0.5 font-ui text-[0.62rem] font-black ring-1 transition sm:w-full sm:rounded-md sm:px-1.5 sm:py-1 sm:text-xs ${taskStyles} ${canUpdate ? "hover:-translate-y-0.5 hover:shadow-sm" : "cursor-not-allowed opacity-70"}`}
                         title={
                           canUpdate
                             ? `${getTaskMonthLabel(task)} - click for ${statusLabels[nextStatus]}`
@@ -248,10 +251,11 @@ export function MonthCalendar({
             );
           })}
         </div>
+        </div>
       </section>
 
       {tasks.length === 0 ? (
-        <section className="rounded-[2rem] bg-white p-6 text-center shadow-sm">
+        <section className="surface-card p-6 text-center">
           <h2 className="font-display text-xl font-bold">No calendar tasks this month</h2>
           <p className="mt-2 text-slate-600">
             Shared calendar events will appear here when scheduled.

@@ -22,7 +22,7 @@ export function TaskCard({
   const currentStatus = status ?? task.status;
 
   return (
-    <article className="rounded-[1.75rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="surface-card p-5 transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="font-display text-lg font-bold leading-snug text-slate-950">{task.title}</h3>
@@ -35,7 +35,7 @@ export function TaskCard({
         <StatusBadge status={currentStatus} />
       </div>
 
-      <div className="mt-4 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+      <div className="surface-subtle mt-4 p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="font-ui text-xs font-bold uppercase tracking-wide text-slate-500">Assigned to</p>

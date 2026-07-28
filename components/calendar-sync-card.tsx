@@ -42,7 +42,7 @@ export function CalendarSyncCard() {
   }
 
   return (
-    <section className="mb-5 rounded-[2rem] bg-slate-950 p-5 text-white shadow-[0_22px_60px_rgba(15,23,42,0.22)] ring-1 ring-white/10">
+    <section className="mb-5 rounded-2xl bg-slate-950 p-5 text-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
       <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-200">
         Calendar sync
       </p>
@@ -51,7 +51,7 @@ export function CalendarSyncCard() {
         Use this after changing the monthly schedule in Google Calendar.
       </p>
       <button
-        className="mt-4 rounded-full bg-cyan-300 px-5 py-3 font-ui font-black text-slate-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="mt-4 min-h-11 rounded-full bg-cyan-300 px-5 py-3 font-ui font-black text-slate-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
         disabled={isSyncing}
         onClick={syncCalendar}
         type="button"
@@ -59,7 +59,7 @@ export function CalendarSyncCard() {
         {isSyncing ? "Syncing..." : "Sync calendar"}
       </button>
       {message ? (
-        <p className="mt-3 rounded-2xl bg-white/10 p-3 text-sm font-bold text-white">
+        <p role="status" className="status-message mt-3 bg-white/10 p-3 text-white">
           {message}
         </p>
       ) : null}

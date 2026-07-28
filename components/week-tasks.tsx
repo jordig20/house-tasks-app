@@ -119,7 +119,7 @@ export function WeekTasks({
       ) : null}
 
       {multiDayTasks.length > 0 ? (
-        <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 text-slate-950 shadow-sm backdrop-blur">
+        <section className="surface-card p-5 text-slate-950">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">All week</p>
@@ -201,7 +201,7 @@ export function WeekTasks({
       ) : null}
 
       {Object.entries(groupedTasks).map(([day, dayTasks]) => (
-        <section key={day} className="rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+        <section key={day} className="surface-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">{day}</h2>
             <span className="text-sm font-bold text-slate-500">{dayTasks.length} {dayTasks.length === 1 ? "event" : "events"}</span>

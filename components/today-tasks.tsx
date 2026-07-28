@@ -98,7 +98,7 @@ export function TodayTasks({
 
   return (
     <>
-      <section className="mb-5 overflow-hidden rounded-[2rem] bg-slate-950 p-5 text-white shadow-[0_22px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
+      <section className="mb-5 overflow-hidden rounded-2xl bg-slate-950 p-5 text-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
         <p className="font-ui text-xs font-black uppercase tracking-[0.22em] text-cyan-200">
           Your next task
         </p>
@@ -123,7 +123,7 @@ export function TodayTasks({
         )}
       </section>
 
-      <section className="mb-5 rounded-[2rem] border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+      <section className="surface-card mb-5 p-5">
         <p className="font-ui text-sm font-bold text-slate-500">
           {user?.role === "admin" ? "Synced calendar tasks for today" : "Today progress"}
         </p>
@@ -155,8 +155,8 @@ export function TodayTasks({
             />
           ))
         ) : (
-          <section className="rounded-[2rem] bg-white p-6 text-center shadow-sm">
-          <h2 className="font-display text-xl font-bold">No calendar tasks today</h2>
+          <section className="surface-card p-6 text-center">
+            <h2 className="font-display text-xl font-bold">No calendar tasks today</h2>
             <p className="mt-2 text-slate-600">Shared calendar events will appear here when scheduled.</p>
           </section>
         )}

@@ -59,15 +59,18 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
       <section className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
         <BrandLogo />
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit} aria-describedby={error ? "login-error" : undefined}>
           <div>
-            <label className="font-ui text-sm font-bold text-slate-700">
+            <span id="account-label" className="font-ui text-sm font-bold text-slate-700">
               Account
-            </label>
+            </span>
             <button
+              id="account-picker"
               type="button"
-              className="mt-2 flex w-full items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition hover:border-slate-400 focus:border-slate-900 focus:outline-none"
+              className="mt-2 flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left shadow-sm transition hover:border-slate-400"
               aria-expanded={isUserPickerOpen}
+              aria-haspopup="listbox"
+              aria-labelledby="account-label"
               onClick={() => setIsUserPickerOpen((isOpen) => !isOpen)}
             >
               {selectedUser ? (
@@ -96,9 +99,11 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
             </button>
 
             {isUserPickerOpen ? (
-              <div className="mt-3 max-h-72 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
+              <div role="listbox" aria-labelledby="account-label" className="mt-3 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
                 {users.map((user) => (
                   <label
+                    role="option"
+                    aria-selected={selectedUserId === user.id}
                     key={user.id}
                     className={`flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition ${selectedUserId === user.id ? "bg-slate-100 ring-1 ring-slate-300" : "hover:bg-slate-50"}`}
                   >
@@ -141,7 +146,9 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
             </label>
             <input
               id="pin"
-              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg tracking-[0.4em] outline-none focus:border-slate-950"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "login-error" : undefined}
+              className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg tracking-[0.4em] outline-none focus:border-slate-950"
               inputMode="numeric"
               maxLength={4}
               placeholder="••••"
@@ -154,12 +161,12 @@ export function LoginScreen({ users: initialUsers }: { users: HouseUser[] }) {
               }}
             />
             {error ? (
-              <p className="mt-2 text-sm font-bold text-red-600">{error}</p>
+              <p id="login-error" role="alert" className="mt-2 text-sm font-bold text-red-700">{error}</p>
             ) : null}
           </div>
 
           <button
-            className="w-full rounded-full bg-slate-950 px-5 py-3 text-center font-ui font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            className="min-h-12 w-full rounded-full bg-slate-950 px-5 py-3 text-center font-ui font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
             type="submit"
             disabled={pin.length !== 4 || isSubmitting}
           >

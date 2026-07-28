@@ -4,15 +4,76 @@
 
 :root {
   color-scheme: light;
+  --canvas: #f4f7f5;
+  --surface: #ffffff;
+  --surface-subtle: #f8faf9;
+  --text: #17211b;
+  --text-muted: #526158;
+  --border: #d9e2dc;
+  --action: #17211b;
+  --action-contrast: #ffffff;
+  --focus: #0e7490;
+  --success: #166534;
+  --warning: #92400e;
+  --danger: #b91c1c;
 }
 
 body {
   background:
     radial-gradient(circle at top left, rgba(125, 211, 252, 0.16), transparent 34rem),
-    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    linear-gradient(180deg, var(--canvas) 0%, #eaf0ec 100%);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  color: var(--text);
 }
 
 * {
   box-sizing: border-box;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, a, input, select):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.surface-card {
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 51, 35, 0.08);
+}
+
+.surface-subtle {
+  background: var(--surface-subtle);
+  border: 1px solid #e4ebe6;
+  border-radius: 0.875rem;
+}
+
+.action-primary {
+  background: var(--action);
+  color: var(--action-contrast);
+}
+
+.status-message {
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

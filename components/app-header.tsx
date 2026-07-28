@@ -120,7 +120,7 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-white/70 bg-slate-50/85 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0">
+    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-white/70 bg-slate-50/90 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
         <div className="flex items-center gap-6">
           <BrandLogo compact />
@@ -132,7 +132,7 @@ export function AppHeader({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-full px-3 py-2 font-ui text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
+                  className={`rounded-full px-3 py-2.5 font-ui text-sm font-bold transition hover:bg-slate-100 hover:text-slate-950 ${isActive ? "bg-slate-950 text-white shadow-sm" : "text-slate-600"}`}
                 >
                   {item.label}
                 </Link>
@@ -172,7 +172,7 @@ export function AppHeader({
                 setPinReminderState({ dismissed: true, userId: user.id })
               }
             />
-            <button onClick={signOut} className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 font-ui text-xs font-bold text-slate-600 shadow-sm transition hover:text-slate-950">
+            <button onClick={signOut} className="min-h-11 rounded-full border border-slate-200 bg-white/80 px-3 py-2 font-ui text-xs font-bold text-slate-600 shadow-sm transition hover:text-slate-950">
               Log out
             </button>
           </div>

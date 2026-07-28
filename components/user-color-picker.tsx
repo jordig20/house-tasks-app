@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { UserAvatar } from "@/components/user-avatar";
 import { getLoggedInUser, getUserRequestHeaders } from "@/lib/auth";
@@ -58,11 +58,14 @@ export function UserColorPicker({
   const [email, setEmail] = useState(user.email ?? "");
   const [emailMessage, setEmailMessage] = useState("");
   const [colorMessage, setColorMessage] = useState("");
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const isOpen = forceOpen || isManuallyOpen;
 
   function closeModal() {
     setIsManuallyOpen(false);
     onClose?.();
+    queueMicrotask(() => triggerRef.current?.focus());
   }
 
   useEffect(() => {
@@ -76,11 +79,13 @@ export function UserColorPicker({
       if (event.key === "Escape") {
         setIsManuallyOpen(false);
         onClose?.();
+        queueMicrotask(() => triggerRef.current?.focus());
       }
     }
 
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
+    queueMicrotask(() => closeButtonRef.current?.focus());
 
     return () => {
       document.body.style.overflow = originalOverflow;
@@ -241,6 +246,7 @@ export function UserColorPicker({
             role="dialog"
             aria-modal="true"
             aria-labelledby={`profile-settings-${user.id}`}
+            aria-describedby={`profile-settings-description-${user.id}`}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">
@@ -256,7 +262,8 @@ export function UserColorPicker({
               </div>
               <button
                 type="button"
-                className="rounded-full bg-slate-100 px-3 py-2 font-ui text-xs font-black text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+                ref={closeButtonRef}
+                className="min-h-11 rounded-full bg-slate-100 px-3 py-2 font-ui text-xs font-black text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
                 onClick={closeModal}
               >
                 Close
@@ -264,7 +271,7 @@ export function UserColorPicker({
             </div>
 
             <div className="mt-5 rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-100">
-              <p className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">
+              <p id={`profile-settings-description-${user.id}`} className="font-ui text-xs font-black uppercase tracking-wide text-slate-500">
                 Color
               </p>
               {description ? (
@@ -292,7 +299,7 @@ export function UserColorPicker({
                 })}
               </div>
               {colorMessage ? (
-                <p className="mt-2 text-xs font-bold text-slate-600">
+                <p role="alert" className="mt-2 text-xs font-bold text-red-700">
                   {colorMessage}
                 </p>
               ) : null}
@@ -309,33 +316,39 @@ export function UserColorPicker({
                   </p>
                 ) : null}
                 <div className="mt-2 space-y-2">
-                  <input
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder="Current PIN"
-                    type="password"
-                    value={currentPin}
-                    onChange={(event) => {
-                      setCurrentPin(event.target.value.replace(/\D/g, ""));
-                      setPinMessage("");
-                    }}
-                  />
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <div className="space-y-1">
+                    <label htmlFor={`current-pin-${user.id}`} className="font-ui text-xs font-bold text-slate-600">Current PIN</label>
                     <input
-                      className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
+                      id={`current-pin-${user.id}`}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
                       inputMode="numeric"
                       maxLength={4}
-                      placeholder="New PIN"
                       type="password"
-                      value={pin}
+                      value={currentPin}
                       onChange={(event) => {
-                        setPin(event.target.value.replace(/\D/g, ""));
+                        setCurrentPin(event.target.value.replace(/\D/g, ""));
                         setPinMessage("");
                       }}
                     />
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <div className="min-w-0 space-y-1">
+                      <label htmlFor={`new-pin-${user.id}`} className="font-ui text-xs font-bold text-slate-600">New PIN</label>
+                      <input
+                        id={`new-pin-${user.id}`}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
+                        inputMode="numeric"
+                        maxLength={4}
+                        type="password"
+                        value={pin}
+                        onChange={(event) => {
+                          setPin(event.target.value.replace(/\D/g, ""));
+                          setPinMessage("");
+                        }}
+                      />
+                    </div>
                     <button
-                      className="rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      className="self-end rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={!isFourDigitPin(pin) || isSaving}
                       type="submit"
                     >
@@ -344,7 +357,7 @@ export function UserColorPicker({
                   </div>
                 </div>
                 {pinMessage ? (
-                  <p className="mt-2 text-xs font-bold text-slate-600">
+                  <p role="status" className="mt-2 text-xs font-bold text-slate-600">
                     {pinMessage}
                   </p>
                 ) : null}
@@ -361,18 +374,21 @@ export function UserColorPicker({
                     {emailReminder}
                   </p>
                 ) : null}
-                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-                  <input
-                    className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold outline-none focus:border-slate-950"
-                    inputMode="email"
-                    placeholder="you@example.com"
-                    type="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      setEmailMessage("");
-                    }}
-                  />
+                <div className="mt-3 grid grid-cols-[1fr_auto] items-end gap-2">
+                  <div className="min-w-0 space-y-1">
+                    <label htmlFor={`email-${user.id}`} className="font-ui text-xs font-bold text-slate-600">Email address</label>
+                    <input
+                      id={`email-${user.id}`}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold outline-none focus:border-slate-950"
+                      inputMode="email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        setEmailMessage("");
+                      }}
+                    />
+                  </div>
                   <button
                     className="rounded-full bg-slate-950 px-4 py-2 font-ui text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!isValidEmail(email.trim()) || isSaving}
@@ -381,18 +397,21 @@ export function UserColorPicker({
                     Save
                   </button>
                 </div>
-                <input
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
-                  inputMode="numeric"
-                  maxLength={4}
-                  placeholder="Current PIN"
-                  type="password"
-                  value={currentPin}
-                  onChange={(event) => {
-                    setCurrentPin(event.target.value.replace(/\D/g, ""));
-                    setEmailMessage("");
-                  }}
-                />
+                <div className="mt-2 space-y-1">
+                  <label htmlFor={`email-current-pin-${user.id}`} className="font-ui text-xs font-bold text-slate-600">Current PIN</label>
+                  <input
+                    id={`email-current-pin-${user.id}`}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold tracking-[0.3em] outline-none focus:border-slate-950"
+                    inputMode="numeric"
+                    maxLength={4}
+                    type="password"
+                    value={currentPin}
+                    onChange={(event) => {
+                      setCurrentPin(event.target.value.replace(/\D/g, ""));
+                      setEmailMessage("");
+                    }}
+                  />
+                </div>
                 <div className="mt-3 space-y-2">
                   <label className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
                     <span>Morning task emails</span>
@@ -422,7 +441,7 @@ export function UserColorPicker({
                   </label>
                 </div>
                 {emailMessage ? (
-                  <p className="mt-2 text-xs font-bold text-slate-600">
+                  <p role="status" className="mt-2 text-xs font-bold text-slate-600">
                     {emailMessage}
                   </p>
                 ) : null}
@@ -438,6 +457,7 @@ export function UserColorPicker({
     <div className="relative inline-flex">
       <button
         type="button"
+        ref={triggerRef}
         className="rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
         onClick={() => {
           if (isOpen) {

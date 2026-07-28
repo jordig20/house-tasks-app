@@ -26,7 +26,7 @@ export function BottomNav({ user }: { user: LoggedInUser | null }) {
   const userColor = user ? getUserColorClass(user.color, user.role) : "";
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/90 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:hidden">
+    <nav aria-label="Primary navigation" className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-16px_40px_rgba(15,23,42,0.12)] backdrop-blur sm:hidden">
       <div className={`mx-auto grid max-w-md gap-1 ${gridCols}`}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -34,7 +34,7 @@ export function BottomNav({ user }: { user: LoggedInUser | null }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-2xl px-2 py-2 text-center font-ui text-xs font-bold ${isActive ? "bg-slate-950 text-white" : "text-slate-500"}`}
+              className={`min-h-11 rounded-2xl px-2 py-2 text-center font-ui text-xs font-bold ${isActive ? "bg-slate-950 text-white" : "text-slate-500"}`}
             >
               <span
                 className={`mx-auto mb-1 block h-1.5 w-6 rounded-full ${isActive ? userColor || "bg-cyan-300" : "bg-slate-200"}`}
