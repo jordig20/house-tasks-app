@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 import { getLoggedInUser, getUserRequestHeaders } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
 import {
@@ -8,7 +10,6 @@ import {
   getMonthStartKey,
   shiftMonth,
 } from "@/lib/printable-calendar";
-import { buildPrintableCalendarPdf } from "@/lib/printable-calendar-pdf";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import { getUserColorClass } from "@/lib/users";
 
@@ -44,6 +45,19 @@ function formatDate(dateKey: string) {
   return fullDateFormatter.format(new Date(`${dateKey}T12:00:00.000Z`));
 }
 
+function findAssigneeLabel(
+  task: CleaningTask,
+  usersById: Map<string, PrintableUser>,
+): string {
+  if (task.assignedUserIds.length === 0) {
+    return "Unassigned";
+  }
+
+  return task.assignedUserIds
+    .map((userId, index) => usersById.get(userId)?.name ?? task.assignedTo[index] ?? "Assigned")
+    .join(" & ");
+}
+
 export function PrintableCalendarAdmin() {
   const currentMonth = getMonthStartKey(getBanffDateKey());
   const [monthStart, setMonthStart] = useState(currentMonth);
@@ -54,12 +68,24 @@ export function PrintableCalendarAdmin() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [isRenderingPdf, setIsRenderingPdf] = useState(false);
+  const printableRef = useRef<HTMLDivElement>(null);
   const days = buildPrintableCalendar(monthStart, tasks);
   const weekCount = days.length / 7;
   const weeks = Array.from({ length: weekCount }, (_, index) =>
     days.slice(index * 7, index * 7 + 7),
   );
   const usersById = new Map(users.map((user) => [user.id, user]));
+
+  useEffect(() => {
+    const printable = printableRef.current;
+    if (!printable) {
+      return;
+    }
+    const inlineWidth = `${Math.max(58, weekCount * 9)}rem`;
+    printable.style.setProperty("--pdf-weeks", String(weekCount));
+    printable.style.setProperty("--pdf-width", inlineWidth);
+  }, [weekCount]);
 
   async function loadMonth(nextMonth = monthStart) {
     const currentUser = getLoggedInUser();
@@ -120,18 +146,47 @@ export function PrintableCalendarAdmin() {
     }
   }
 
-  function downloadPdf() {
-    if (!hasLoaded) {
+  async function downloadPdf() {
+    if (!hasLoaded || !printableRef.current) {
       return;
     }
 
-    const doc = buildPrintableCalendarPdf({
-      monthLabel: formatMonth(monthStart),
-      monthStart,
-      days,
-      users,
-    });
-    doc.save(`540a-calendar-${monthStart}.pdf`);
+    setIsRenderingPdf(true);
+
+    try {
+      const canvas = await html2canvas(printableRef.current, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+        windowWidth: printableRef.current.scrollWidth,
+        windowHeight: printableRef.current.scrollHeight,
+      });
+
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 6;
+      const targetWidth = pageWidth - margin * 2;
+      const targetHeight = pageHeight - margin * 2;
+      const ratio = Math.min(targetWidth / canvas.width, targetHeight / canvas.height);
+      const renderWidth = canvas.width * ratio;
+      const renderHeight = canvas.height * ratio;
+      const offsetX = (pageWidth - renderWidth) / 2;
+      const offsetY = (pageHeight - renderHeight) / 2;
+      const imageData = canvas.toDataURL("image/png");
+
+      doc.addImage(imageData, "PNG", offsetX, offsetY, renderWidth, renderHeight);
+      doc.save(`540a-calendar-${monthStart}.pdf`);
+    } catch (renderError) {
+      setError(
+        renderError instanceof Error
+          ? renderError.message
+          : "Printable calendar could not be exported.",
+      );
+    } finally {
+      setIsRenderingPdf(false);
+    }
   }
 
   return (
@@ -157,11 +212,11 @@ export function PrintableCalendarAdmin() {
             </button>
             <button
               className="action-primary min-h-11 rounded-full px-5 py-3 font-ui text-sm font-black disabled:opacity-50"
-              disabled={!hasLoaded || isLoading}
+              disabled={!hasLoaded || isLoading || isRenderingPdf}
               type="button"
               onClick={downloadPdf}
             >
-              Download PDF
+              {isRenderingPdf ? "Rendering PDF..." : "Download PDF"}
             </button>
           </div>
         </div>
@@ -235,112 +290,127 @@ export function PrintableCalendarAdmin() {
         ) : null}
       </section>
 
-      <section
+      <div
+        ref={printableRef}
         aria-label={`${formatMonth(monthStart)} printable household calendar`}
-        className={`print-calendar-sheet overflow-x-auto bg-white text-slate-950 shadow-[0_12px_36px_rgba(15,23,42,0.1)] ring-1 ring-slate-200 ${hasLoaded && tasks.length === 0 ? "has-empty-calendar" : ""}`}
+        className={`print-calendar-sheet printable-pdf bg-white text-slate-950 shadow-[0_12px_36px_rgba(15,23,42,0.1)] ring-1 ring-slate-200 ${hasLoaded && tasks.length === 0 ? "has-empty-calendar" : ""}`}
       >
-        <header className="print-calendar-title flex items-end justify-between gap-4 border-b-2 border-slate-950 px-5 py-4">
-          <div>
-            <p className="font-ui text-[0.65rem] font-black uppercase tracking-[0.18em] text-cyan-800">
-              540A Cleaning · Household calendar
-            </p>
-            <h2 id="print-calendar-heading" className="mt-1 font-display text-3xl font-bold tracking-tight">
+        <header className="print-calendar-title">
+          <div className="pdf-eyebrow">
+            540A Cleaning · Household calendar
+          </div>
+          <div className="pdf-title-row">
+            <h2 id="print-calendar-heading" className="pdf-title">
               {formatMonth(monthStart)}
             </h2>
+            <p className={`pdf-subtitle ${warnings.length > 0 ? "pdf-subtitle-warn" : "pdf-subtitle-muted"}`}>
+              {warnings.length > 0
+                ? "Calendar warning: this month may be incomplete"
+                : hasLoaded && tasks.length === 0
+                  ? "No tasks scheduled this month"
+                  : "Household schedule"}
+            </p>
           </div>
-          <p className={`max-w-56 text-right font-ui text-xs font-bold ${warnings.length > 0 ? "text-amber-800" : "text-slate-500"}`}>
-            {warnings.length > 0
-              ? "Calendar warning: this month may be incomplete"
-              : hasLoaded && tasks.length === 0
-                ? "No tasks scheduled this month"
-                : "Household schedule"}
-          </p>
         </header>
 
         {!hasLoaded ? (
-          <div className="print-hidden border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-600">
+          <div className="print-hidden pdf-hint">
             Enter the admin PIN and load this month to preview its tasks.
           </div>
         ) : null}
 
-        <div
+        <table
           aria-labelledby="print-calendar-heading"
-          className="print-calendar-grid min-w-[58rem]"
+          className="pdf-grid"
           role="grid"
-          style={{ "--calendar-weeks": weekCount } as React.CSSProperties}
         >
-          <div className="calendar-row grid grid-cols-7" role="row">
-            {weekdayLabels.map((weekday, index) => (
-              <div
-                id={`print-calendar-weekday-${index}`}
-                key={weekday}
-                className="calendar-weekday border-b border-r border-slate-300 bg-slate-950 px-2 py-2 text-center font-ui text-[0.65rem] font-black uppercase tracking-wide text-white"
-                role="columnheader"
-              >
-                {weekday}
-              </div>
+          <colgroup>
+            {weekdayLabels.map((weekday) => (
+              <col key={weekday} />
             ))}
-          </div>
-          {weeks.map((week) => (
-            <div className="calendar-row grid grid-cols-7" key={week[0].dateKey} role="row">
-              {week.map((day, weekdayIndex) => (
-                <div
-                  aria-labelledby={`print-calendar-weekday-${weekdayIndex} print-calendar-date-${day.dateKey}`}
-                  key={day.dateKey}
-                  className={`calendar-day min-h-32 overflow-hidden border-b border-r border-slate-300 p-2 ${day.isCurrentMonth ? "bg-white" : "bg-slate-50 text-slate-400"}`}
-                  role="gridcell"
+          </colgroup>
+          <thead>
+            <tr>
+              {weekdayLabels.map((weekday, index) => (
+                <th
+                  id={`print-calendar-weekday-${index}`}
+                  key={weekday}
+                  scope="col"
+                  className="pdf-weekday"
                 >
-                  <time
-                    aria-label={formatDate(day.dateKey)}
-                    className="block font-display text-base font-bold"
-                    dateTime={day.dateKey}
-                    id={`print-calendar-date-${day.dateKey}`}
-                  >
-                    {day.dayNumber}
-                  </time>
-                  <div className="mt-1 space-y-1">
-                    {day.tasks.map((task) => (
-                      <div
-                        key={`${day.dateKey}-${task.id}`}
-                        className="calendar-task rounded-md bg-slate-50 px-1.5 py-1 ring-1 ring-slate-200"
-                        title={`${task.title} · ${task.assignedTo.join(" & ") || "Unassigned"}`}
-                      >
-                        <p className="truncate font-ui text-[0.68rem] font-black leading-tight text-slate-950">
-                          {task.title}
-                        </p>
-                        <div className="mt-0.5 flex min-w-0 items-center gap-1 overflow-hidden">
-                          {task.assignedUserIds.length > 0 ? task.assignedUserIds.map((userId, index) => {
-                            const user = usersById.get(userId);
-                            const name = user?.name ?? task.assignedTo[index] ?? "Assigned";
-
-                            return (
-                              <span key={userId} className="inline-flex min-w-0 items-center gap-1 font-ui text-[0.55rem] font-black leading-none text-slate-700">
-                                <span
-                                  aria-hidden="true"
-                                  className={`h-2 w-2 shrink-0 rounded-full ring-1 ${getUserColorClass(user?.color, user?.role)}`}
-                                />
-                                <span className="truncate">{name}</span>
-                              </span>
-                            );
-                          }) : (
-                            <span className="font-ui text-[0.55rem] font-bold text-slate-500">Unassigned</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  {weekday.toUpperCase()}
+                </th>
               ))}
-            </div>
-          ))}
-        </div>
+            </tr>
+          </thead>
+          <tbody>
+            {weeks.map((week) => (
+              <tr key={week[0].dateKey} className="pdf-row">
+                {week.map((day, weekdayIndex) => (
+                  <td
+                    aria-labelledby={`print-calendar-weekday-${weekdayIndex} print-calendar-date-${day.dateKey}`}
+                    key={day.dateKey}
+                    className={`pdf-day ${day.isCurrentMonth ? "pdf-day-current" : "pdf-day-adjacent"}`}
+                    role="gridcell"
+                  >
+                    <time
+                      aria-label={formatDate(day.dateKey)}
+                      className={`pdf-day-number ${day.isCurrentMonth ? "pdf-day-number-current" : "pdf-day-number-adjacent"}`}
+                      dateTime={day.dateKey}
+                      id={`print-calendar-date-${day.dateKey}`}
+                    >
+                      {day.dayNumber}
+                    </time>
+                    <div className="pdf-task-list">
+                      {day.tasks.map((task) => (
+                        <div
+                          key={`${day.dateKey}-${task.id}`}
+                          className="pdf-task"
+                          title={`${task.title} · ${findAssigneeLabel(task, usersById)}`}
+                        >
+                          <p className="pdf-task-title">
+                            {task.title}
+                          </p>
+                          <div className="pdf-task-meta">
+                            {task.assignedUserIds.length > 0 ? task.assignedUserIds.map((userId, index) => {
+                              const user = usersById.get(userId);
+                              return (
+                                <span
+                                  key={userId}
+                                  className={`pdf-assignee ${user ? getUserColorClass(user.color, user.role) : "pdf-assignee-fallback"}`}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className={`pdf-swatch ${user ? getUserColorClass(user.color, user.role) : "pdf-swatch-fallback"}`}
+                                  />
+                                  <span className="pdf-assignee-name">
+                                    {user?.name ?? task.assignedTo[index] ?? "Assigned"}
+                                  </span>
+                                </span>
+                              );
+                            }) : (
+                              <span className="pdf-assignee-fallback">
+                                <span aria-hidden="true" className="pdf-swatch-fallback pdf-swatch" />
+                                <span className="pdf-assignee-name">Unassigned</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         {hasLoaded && tasks.length === 0 ? (
-          <p className="calendar-empty border-t border-slate-300 px-5 py-3 text-center font-ui text-xs font-bold text-slate-600">
+          <p className="pdf-empty">
             No Google Calendar tasks are scheduled for this month.
           </p>
         ) : null}
-      </section>
+      </div>
     </div>
   );
 }
