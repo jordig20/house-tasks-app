@@ -8,6 +8,7 @@ import {
   getMonthStartKey,
   shiftMonth,
 } from "@/lib/printable-calendar";
+import { buildPrintableCalendarPdf } from "@/lib/printable-calendar-pdf";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
 import { getUserColorClass } from "@/lib/users";
 
@@ -119,6 +120,20 @@ export function PrintableCalendarAdmin() {
     }
   }
 
+  function downloadPdf() {
+    if (!hasLoaded) {
+      return;
+    }
+
+    const doc = buildPrintableCalendarPdf({
+      monthLabel: formatMonth(monthStart),
+      monthStart,
+      days,
+      users,
+    });
+    doc.save(`540a-calendar-${monthStart}.pdf`);
+  }
+
   return (
     <div className="print-page space-y-5">
       <section className="surface-card print-hidden p-5 sm:p-6">
@@ -128,16 +143,16 @@ export function PrintableCalendarAdmin() {
               Prepare a calendar for the house
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Choose a month, load the current Google Calendar tasks, then print an A4 landscape copy with each assignee&apos;s color.
+              Choose a month, load the current Google Calendar tasks, then download an A4 landscape PDF with each assignee&apos;s color.
             </p>
           </div>
           <button
             className="action-primary min-h-11 rounded-full px-5 py-3 font-ui text-sm font-black disabled:opacity-50"
             disabled={!hasLoaded || isLoading}
             type="button"
-            onClick={() => window.print()}
+            onClick={downloadPdf}
           >
-            Print calendar
+            Download PDF
           </button>
         </div>
 
@@ -228,7 +243,7 @@ export function PrintableCalendarAdmin() {
               ? "Calendar warning: this month may be incomplete"
               : hasLoaded && tasks.length === 0
                 ? "No tasks scheduled this month"
-                : "Tasks from Google Calendar"}
+                : "Household schedule"}
           </p>
         </header>
 
