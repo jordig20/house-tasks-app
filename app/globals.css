@@ -121,22 +121,33 @@ button:disabled {
   }
 
   .print-calendar-sheet {
+    height: 190mm;
     width: 100%;
-    overflow: visible;
+    overflow: hidden;
     box-shadow: none;
     break-inside: avoid;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
+  .has-empty-calendar .print-calendar-sheet {
+    height: 182mm;
+  }
+
   .print-calendar-title {
+    height: 16mm;
     padding: 2mm 3mm;
   }
 
   .print-calendar-grid {
     display: grid;
     min-width: 0;
+    height: 174mm;
     grid-template-rows: 8mm repeat(var(--calendar-weeks), minmax(0, 1fr));
+  }
+
+  .has-empty-calendar .print-calendar-grid {
+    height: 166mm;
   }
 
   .calendar-row {
@@ -152,7 +163,6 @@ button:disabled {
     min-height: 0;
     padding: 1.4mm;
     break-inside: avoid;
-    overflow: visible !important;
   }
 
   .calendar-task {
@@ -160,8 +170,10 @@ button:disabled {
     break-inside: avoid;
   }
 
-  .print-calendar-detail {
-    padding: 3mm;
-    break-inside: avoid;
+  .calendar-empty {
+    height: 8mm;
+    overflow: hidden;
+    padding: 2mm 3mm;
+    line-height: 4mm;
   }
 }

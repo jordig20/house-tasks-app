@@ -35,17 +35,6 @@ const fullDateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
   timeZone: "UTC",
 });
-const eventDayFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-const eventTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "America/Edmonton",
-});
 
 function formatMonth(monthStart: string) {
   return monthFormatter.format(new Date(`${monthStart}T12:00:00.000Z`));
@@ -53,38 +42,6 @@ function formatMonth(monthStart: string) {
 
 function formatDate(dateKey: string) {
   return fullDateFormatter.format(new Date(`${dateKey}T12:00:00.000Z`));
-}
-
-function formatEventDate(rawStart: string, isAllDay: boolean) {
-  if (isAllDay || /^\d{4}-\d{2}-\d{2}$/.test(rawStart)) {
-    return eventDayFormatter.format(new Date(`${rawStart.slice(0, 10)}T12:00:00.000Z`));
-  }
-
-  const startDate = new Date(rawStart);
-  const day = eventDayFormatter.format(new Date(`${formatEventDateKey(startDate)}T12:00:00.000Z`));
-  return `${day} · ${eventTimeFormatter.format(startDate)}`;
-}
-
-function formatEventEndDate(rawEnd: string, isAllDay: boolean) {
-  if (isAllDay || /^\d{4}-\d{2}-\d{2}$/.test(rawEnd)) {
-    return eventDayFormatter.format(new Date(`${rawEnd.slice(0, 10)}T12:00:00.000Z`));
-  }
-
-  return eventDayFormatter.format(new Date(`${formatEventDateKey(new Date(rawEnd))}T12:00:00.000Z`));
-}
-
-function formatEventDateKey(date: Date) {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Edmonton",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const parts = formatter.formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value ?? "0000";
-  const month = parts.find((part) => part.type === "month")?.value ?? "01";
-  const day = parts.find((part) => part.type === "day")?.value ?? "01";
-  return `${year}-${month}-${day}`;
 }
 
 export function PrintableCalendarAdmin() {
@@ -101,14 +58,6 @@ export function PrintableCalendarAdmin() {
   const weekCount = days.length / 7;
   const weeks = Array.from({ length: weekCount }, (_, index) =>
     days.slice(index * 7, index * 7 + 7),
-  );
-  const taskList = Array.from(
-    new Map(tasks.map((task) => [task.id, task])).values(),
-  ).sort(
-    (first, second) =>
-      first.start.localeCompare(second.start) ||
-      first.title.localeCompare(second.title) ||
-      first.id.localeCompare(second.id),
   );
   const usersById = new Map(users.map((user) => [user.id, user]));
 
@@ -386,67 +335,10 @@ export function PrintableCalendarAdmin() {
           ))}
         </div>
 
-        {hasLoaded ? (
-          <section
-            aria-label="Every event this month"
-            className="print-calendar-detail border-t-2 border-slate-950 bg-white px-5 py-4"
-          >
-            <h3 className="font-display text-lg font-bold text-slate-950">
-              Every event this month ({taskList.length})
-            </h3>
-            {taskList.length === 0 ? (
-              <p className="mt-2 font-ui text-sm font-bold text-slate-600">
-                No Google Calendar tasks are scheduled for this month.
-              </p>
-            ) : (
-              <ol className="mt-3 grid gap-2 sm:grid-cols-2">
-                {taskList.map((task) => {
-                  const start = formatEventDate(task.start, task.isAllDay);
-                  const end = formatEventEndDate(task.end, task.isAllDay);
-                  const assignees = task.assignedUserIds.length > 0
-                    ? task.assignedUserIds.map((userId, index) => {
-                        const user = usersById.get(userId);
-                        return user?.name ?? task.assignedTo[index] ?? "Assigned";
-                      })
-                    : ["Unassigned"];
-
-                  return (
-                    <li
-                      key={task.id}
-                      className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                    >
-                      <div className="flex shrink-0 flex-wrap gap-1">
-                        {task.assignedUserIds.length > 0 ? task.assignedUserIds.map((userId) => {
-                          const user = usersById.get(userId);
-                          return (
-                            <span
-                              key={userId}
-                              aria-hidden="true"
-                              className={`mt-1 h-2 w-2 shrink-0 rounded-full ring-1 ${getUserColorClass(user?.color, user?.role)}`}
-                            />
-                          );
-                        }) : (
-                          <span
-                            aria-hidden="true"
-                            className="mt-1 h-2 w-2 shrink-0 rounded-full bg-slate-400 ring-1 ring-slate-300"
-                          />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-ui text-sm font-black text-slate-950">
-                          {task.title}
-                        </p>
-                        <p className="font-ui text-[0.7rem] font-bold uppercase tracking-wide text-slate-500">
-                          {start}
-                          {start === end ? "" : ` → ${end}`} · {assignees.join(" & ")}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </section>
+        {hasLoaded && tasks.length === 0 ? (
+          <p className="calendar-empty border-t border-slate-300 px-5 py-3 text-center font-ui text-xs font-bold text-slate-600">
+            No Google Calendar tasks are scheduled for this month.
+          </p>
         ) : null}
       </section>
     </div>

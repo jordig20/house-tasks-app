@@ -71,8 +71,6 @@ const weekdayHeight = 7;
 const cellPadding = 1.4;
 const cardHeight = 11;
 const cardGap = 1;
-const detailRowHeight = 6.2;
-const detailColumns = 2;
 
 function getColor(user: PrintablePdfUser): [number, number, number] {
   if (user.color && colorSwatches[user.color]) {
@@ -118,38 +116,6 @@ function truncate(doc: jsPDF, text: string, maxWidth: number) {
   }
 
   return `${firstLine.replace(/\s+$/, "")}…`;
-}
-
-function isAllDayString(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function formatDay(value: string) {
-  const target = isAllDayString(value)
-    ? new Date(`${value}T12:00:00.000Z`)
-    : new Date(value);
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: "America/Edmonton",
-  });
-
-  return formatter.format(target);
-}
-
-function formatTime(value: string) {
-  if (isAllDayString(value)) {
-    return "";
-  }
-
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/Edmonton",
-  });
-
-  return formatter.format(new Date(value));
 }
 
 function drawHeader(doc: jsPDF, monthLabel: string, monthStart: string) {
@@ -295,130 +261,10 @@ function drawDay(
     doc.setFontSize(6.5);
     doc.setTextColor(...palette.muted);
     doc.text(
-      `+${day.tasks.length - visibleTasks.length} more in full list below`,
+      `+${day.tasks.length - visibleTasks.length} more`,
       dayX,
       cellY + rowHeight - cellPadding,
     );
-  }
-}
-
-type DetailRow = {
-  task: CleaningTask;
-  assignees: AssigneeInfo[];
-};
-
-function collectDetailRows(input: PrintablePdfInput): DetailRow[] {
-  const usersById = new Map(input.users.map((user) => [user.id, user]));
-  const seen = new Map<string, DetailRow>();
-
-  input.days.forEach((day) => {
-    day.tasks.forEach((task) => {
-      if (seen.has(task.id)) {
-        return;
-      }
-
-      seen.set(task.id, {
-        task,
-        assignees: getAssignees(task, input.users, usersById),
-      });
-    });
-  });
-
-  return Array.from(seen.values()).sort(
-    (first, second) =>
-      first.task.start.localeCompare(second.task.start) ||
-      first.task.title.localeCompare(second.task.title) ||
-      first.task.id.localeCompare(second.task.id),
-  );
-}
-
-function drawDetailHeader(doc: jsPDF, top: number, count: number, sheetLeft: number, sheetWidth: number) {
-  doc.setDrawColor(...palette.text);
-  doc.setLineWidth(0.4);
-  doc.line(sheetLeft, top, sheetLeft + sheetWidth, top);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(...palette.text);
-  doc.text(`Every event this month (${count})`, sheetLeft, top + 5);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(...palette.muted);
-  doc.text(
-    "Full event details with start, end and assignees",
-    sheetLeft,
-    top + 9,
-  );
-}
-
-function drawDetailRow(
-  doc: jsPDF,
-  cardX: number,
-  cardY: number,
-  cardWidth: number,
-  row: DetailRow,
-) {
-  const detailCardHeight = 14;
-  const safeWidth = Number.isFinite(cardWidth) ? Math.max(0, cardWidth) : 0;
-
-  if (safeWidth <= 0) {
-    return;
-  }
-
-  doc.setFillColor(...palette.taskCard);
-  doc.setDrawColor(...palette.taskBorder);
-  doc.setLineWidth(0.1);
-  doc.roundedRect(cardX, cardY, safeWidth, detailCardHeight, 1, 1, "FD");
-
-  const start = formatDay(row.task.start);
-  const end = formatDay(row.task.end);
-  const startTime = formatTime(row.task.start);
-  const endTime = formatTime(row.task.end);
-  const startLabel = startTime ? `${start} · ${startTime}` : start;
-  const endLabel = endTime ? `${end} · ${endTime}` : end;
-  const dateLabel = startLabel === endLabel ? startLabel : `${startLabel} → ${endLabel}`;
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.setTextColor(...palette.text);
-  doc.text(
-    truncate(doc, row.task.title, cardWidth - 6),
-    cardX + 2,
-    cardY + 4.6,
-  );
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(...palette.muted);
-  doc.text(
-    truncate(doc, dateLabel, cardWidth - 6),
-    cardX + 2,
-    cardY + 8,
-  );
-
-  const swatchY = cardY + 11;
-  let swatchX = cardX + 2;
-  const assigneeMaxWidth = cardWidth - (swatchX - cardX) - 4;
-
-  if (row.assignees.length === 0) {
-    doc.setFillColor(...palette.unassigned);
-    doc.circle(swatchX + 0.8, swatchY, 0.8, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7);
-    doc.setTextColor(...palette.muted);
-    doc.text("Unassigned", swatchX + 2.2, swatchY + 1.2);
-  } else {
-    row.assignees.forEach((assignee) => {
-      doc.setFillColor(...assignee.color);
-      doc.circle(swatchX + 0.8, swatchY, 0.8, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
-      doc.setTextColor(...palette.muted);
-      const name = truncate(doc, assignee.name, assigneeMaxWidth);
-      doc.text(name, swatchX + 2.2, swatchY + 1.2);
-      swatchX += doc.getTextWidth(name) + 3.6;
-    });
   }
 }
 
@@ -487,38 +333,6 @@ export function buildPrintableCalendarPdf(input: PrintablePdfInput): jsPDF {
     doc.setLineWidth(0.1);
     doc.line(gridLeft, y, gridLeft + columnWidth * 7, y);
   }
-
-  const detailTop = rowsTop + rowHeight * weekCount + 4;
-  const detailRows = collectDetailRows(input);
-  drawDetailHeader(doc, detailTop, detailRows.length, sheetLeft + 2, sheetWidth - 4);
-
-  const detailStart = detailTop + 12;
-  const detailColumnWidth = (sheetWidth - 4 - detailColumns) / detailColumns;
-  const detailColumnGap = 2;
-  const availableHeight = Math.max(
-    0,
-    sheetTop + sheetHeight - detailStart - cellPadding,
-  );
-  const cardRowUnit = detailRowHeight + cardGap;
-  const maxRowsPerColumn = Math.max(
-    1,
-    Math.floor((availableHeight + cardGap) / cardRowUnit),
-  );
-
-  detailRows.forEach((row, index) => {
-    const columnIndex = Math.floor(index / maxRowsPerColumn);
-    const rowIndex = index % maxRowsPerColumn;
-
-    if (columnIndex >= detailColumns) {
-      return;
-    }
-
-    const cardX =
-      sheetLeft + 2 + columnIndex * (detailColumnWidth + detailColumnGap);
-    const cardY = detailStart + rowIndex * cardRowUnit;
-
-    drawDetailRow(doc, cardX, cardY, detailColumnWidth, row);
-  });
 
   doc.setDrawColor(...palette.text);
   doc.setLineWidth(0.4);
