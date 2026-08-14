@@ -64,13 +64,13 @@ const colorSwatches: Record<string, [number, number, number]> = {
 const pageSize = "a4" as const;
 const pageOrientation = "l" as const;
 
-const margin = 10;
+const margin = 8;
 const sheetInset = 4;
-const titleHeight = 14;
-const weekdayHeight = 7;
-const cellPadding = 1.4;
-const cardHeight = 11;
-const cardGap = 1;
+const titleHeight = 12;
+const weekdayHeight = 6;
+const cellPadding = 1.2;
+const cardHeight = 7.4;
+const cardGap = 0.8;
 
 function getColor(user: PrintablePdfUser): [number, number, number] {
   if (user.color && colorSwatches[user.color]) {
@@ -121,26 +121,26 @@ function truncate(doc: jsPDF, text: string, maxWidth: number) {
 function drawHeader(doc: jsPDF, monthLabel: string, monthStart: string) {
   const pageWidth = doc.internal.pageSize.getWidth();
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setTextColor(...palette.accent);
-  doc.text("540A CLEANING · HOUSEHOLD CALENDAR", margin, margin + 4);
+  doc.text("540A CLEANING · HOUSEHOLD CALENDAR", margin, margin + 3);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
+  doc.setFontSize(18);
   doc.setTextColor(...palette.text);
-  doc.text(monthLabel, margin, margin + 12);
+  doc.text(monthLabel, margin, margin + 10);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setTextColor(...palette.muted);
-  doc.text("Household schedule", pageWidth - margin, margin + 12, { align: "right" });
+  doc.text("Household schedule", pageWidth - margin, margin + 10, { align: "right" });
 
   doc.setDrawColor(...palette.text);
-  doc.setLineWidth(0.5);
+  doc.setLineWidth(0.4);
   doc.line(margin, margin + titleHeight, pageWidth - margin, margin + titleHeight);
   doc.setTextColor(...palette.muted);
-  doc.setFontSize(8);
-  doc.text(monthStart, margin, margin + titleHeight + 4);
+  doc.setFontSize(7);
+  doc.text(monthStart, margin, margin + titleHeight + 3);
 }
 
 function drawWeekdayRow(
@@ -153,12 +153,12 @@ function drawWeekdayRow(
   doc.setFillColor(...palette.weekday);
   doc.rect(sheetLeft, gridTop, columnWidth * 7, weekdayHeight, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(...palette.weekdayText);
 
   weekdays.forEach((weekday, index) => {
     const x = sheetLeft + columnWidth * index + columnWidth / 2;
-    doc.text(weekday, x, gridTop + weekdayHeight / 2 + 1.5, { align: "center" });
+    doc.text(weekday, x, gridTop + weekdayHeight / 2 + 1.2, { align: "center" });
   });
 }
 
@@ -173,43 +173,43 @@ function drawTaskCard(
   doc.setFillColor(...palette.taskCard);
   doc.setDrawColor(...palette.taskBorder);
   doc.setLineWidth(0.1);
-  doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 1, 1, "FD");
+  doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 0.8, 0.8, "FD");
 
-  const titleMaxWidth = cardWidth - 2.4;
+  const titleMaxWidth = cardWidth - 2;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
+  doc.setFontSize(7);
   doc.setTextColor(...palette.text);
-  doc.text(truncate(doc, task.title, titleMaxWidth), cardX + 1.2, cardY + 3.6);
+  doc.text(truncate(doc, task.title, titleMaxWidth), cardX + 1, cardY + 2.8);
 
-  const swatchY = cardY + 6;
-  let swatchX = cardX + 1.2;
-  const assigneeMaxWidth = cardWidth - (swatchX - cardX) - 3;
+  const swatchY = cardY + 4.4;
+  let swatchX = cardX + 1;
+  const assigneeMaxWidth = cardWidth - (swatchX - cardX) - 2.4;
 
   if (assignees.length === 0) {
     doc.setFillColor(...palette.unassigned);
-    doc.circle(swatchX + 0.8, swatchY + 0.8, 0.8, "F");
+    doc.circle(swatchX + 0.7, swatchY + 0.7, 0.7, "F");
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.5);
+    doc.setFontSize(6);
     doc.setTextColor(...palette.muted);
-    doc.text("Unassigned", swatchX + 2.2, swatchY + 1.4);
+    doc.text("Unassigned", swatchX + 2, swatchY + 1.2);
   } else {
     const inline = assignees.slice(0, 3);
     inline.forEach((assignee) => {
       doc.setFillColor(...assignee.color);
-      doc.circle(swatchX + 0.8, swatchY + 0.8, 0.8, "F");
+      doc.circle(swatchX + 0.7, swatchY + 0.7, 0.7, "F");
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(...palette.muted);
       const name = truncate(doc, assignee.name, assigneeMaxWidth);
-      doc.text(name, swatchX + 2.2, swatchY + 1.4);
-      swatchX += doc.getTextWidth(name) + 3.4;
+      doc.text(name, swatchX + 2, swatchY + 1.2);
+      swatchX += doc.getTextWidth(name) + 3;
     });
 
     if (assignees.length > inline.length) {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(...palette.muted);
-      doc.text(`+${assignees.length - inline.length}`, swatchX, swatchY + 1.4);
+      doc.text(`+${assignees.length - inline.length}`, swatchX, swatchY + 1.2);
     }
   }
 }
@@ -229,10 +229,10 @@ function drawDay(
   doc.rect(cellX, cellY, columnWidth, rowHeight, "F");
 
   const dayX = cellX + cellPadding;
-  const dayY = cellY + 4;
+  const dayY = cellY + 3.2;
 
   doc.setFont("helvetica", day.isCurrentMonth ? "bold" : "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setTextColor(...(day.isCurrentMonth ? palette.text : palette.muted));
   doc.text(String(day.dayNumber), dayX, dayY);
 
@@ -243,7 +243,7 @@ function drawDay(
     Math.floor((availableHeight + cardGap) / cardUnit),
   );
   const visibleTasks = day.tasks.slice(0, maxCards);
-  const cardTop = dayY + 1.5;
+  const cardTop = dayY + 1;
 
   visibleTasks.forEach((task, index) => {
     drawTaskCard(
@@ -258,7 +258,7 @@ function drawDay(
 
   if (day.tasks.length > visibleTasks.length) {
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(6.5);
+    doc.setFontSize(6);
     doc.setTextColor(...palette.muted);
     doc.text(
       `+${day.tasks.length - visibleTasks.length} more`,
@@ -277,7 +277,7 @@ export function buildPrintableCalendarPdf(input: PrintablePdfInput): jsPDF {
   doc.rect(0, 0, pageWidth, pageHeight, "F");
 
   const sheetLeft = margin + sheetInset;
-  const sheetTop = margin + titleHeight + 6;
+  const sheetTop = margin + titleHeight + 5;
   const sheetWidth = pageWidth - margin * 2 - sheetInset * 2;
   const sheetHeight = pageHeight - sheetTop - margin - sheetInset;
 
@@ -288,8 +288,8 @@ export function buildPrintableCalendarPdf(input: PrintablePdfInput): jsPDF {
 
   drawHeader(doc, input.monthLabel, input.monthStart);
 
-  const gridTop = sheetTop + 2;
-  const gridBottom = sheetTop + sheetHeight - 2;
+  const gridTop = sheetTop + 1;
+  const gridBottom = sheetTop + sheetHeight - 1;
   const usableGridWidth = sheetWidth - 4;
   const columnWidth = usableGridWidth / 7;
   drawWeekdayRow(doc, sheetLeft + 2, gridTop, columnWidth);

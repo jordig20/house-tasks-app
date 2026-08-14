@@ -96,7 +96,7 @@ button:disabled {
 @media print {
   @page {
     size: A4 landscape;
-    margin: 8mm;
+    margin: 6mm;
   }
 
   body {
@@ -121,7 +121,7 @@ button:disabled {
   }
 
   .print-calendar-sheet {
-    height: 190mm;
+    height: 195mm;
     width: 100%;
     overflow: hidden;
     box-shadow: none;
@@ -131,23 +131,23 @@ button:disabled {
   }
 
   .has-empty-calendar .print-calendar-sheet {
-    height: 182mm;
+    height: 185mm;
   }
 
   .print-calendar-title {
-    height: 16mm;
-    padding: 2mm 3mm;
+    height: 12mm;
+    padding: 1mm 2mm;
   }
 
   .print-calendar-grid {
     display: grid;
     min-width: 0;
-    height: 174mm;
-    grid-template-rows: 8mm repeat(var(--calendar-weeks), minmax(0, 1fr));
+    height: 183mm;
+    grid-template-rows: 6mm repeat(var(--calendar-weeks), minmax(0, 1fr));
   }
 
   .has-empty-calendar .print-calendar-grid {
-    height: 166mm;
+    height: 173mm;
   }
 
   .calendar-row {
@@ -155,25 +155,26 @@ button:disabled {
   }
 
   .calendar-weekday {
-    padding: 2mm 1mm;
+    padding: 1mm;
     font-size: 7pt;
   }
 
   .calendar-day {
     min-height: 0;
-    padding: 1.4mm;
+    padding: 1mm;
     break-inside: avoid;
+    overflow: hidden !important;
   }
 
   .calendar-task {
-    padding: 0.8mm 1mm;
+    padding: 0.4mm 0.8mm;
     break-inside: avoid;
   }
 
   .calendar-empty {
     height: 8mm;
     overflow: hidden;
-    padding: 2mm 3mm;
-    line-height: 4mm;
+    padding: 1mm 2mm;
+    line-height: 3mm;
   }
 }
