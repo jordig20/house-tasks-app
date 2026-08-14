@@ -100,11 +100,12 @@ button:disabled {
   width: min(100%, 1100px);
   border-radius: 12px;
   border: 1px solid rgb(226, 232, 240);
+  box-sizing: border-box;
 }
 
 .print-calendar-sheet .print-calendar-title {
   display: block;
-  padding: 12px 18px 8px;
+  padding: 8px 14px 6px;
   border-bottom: 2px solid rgb(2, 6, 23);
 }
 
@@ -127,7 +128,7 @@ button:disabled {
 
 .print-calendar-sheet .pdf-title {
   font-family: var(--font-josefin), var(--font-inter), sans-serif;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   line-height: 1.1;
   margin: 0;
@@ -136,10 +137,10 @@ button:disabled {
 
 .print-calendar-sheet .pdf-subtitle {
   font-family: var(--font-roboto), var(--font-inter), sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   margin: 0;
-  max-width: 240px;
+  max-width: 220px;
   text-align: right;
 }
 
@@ -155,8 +156,8 @@ button:disabled {
   border-bottom: 1px solid rgb(226, 232, 240);
   background: rgb(248, 250, 252);
   color: rgb(71, 85, 105);
-  padding: 10px 18px;
-  font-size: 13px;
+  padding: 8px 14px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -180,7 +181,7 @@ button:disabled {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
-  padding: 4px 2px;
+  padding: 3px 2px;
   border-right: 1px solid rgb(30, 41, 59);
 }
 
@@ -195,11 +196,12 @@ button:disabled {
 .print-calendar-sheet .pdf-day {
   border-right: 1px solid rgb(203, 213, 225);
   border-bottom: 1px solid rgb(203, 213, 225);
-  padding: 4px;
+  padding: 3px;
   vertical-align: top;
   width: calc(100% / 7);
-  height: 110px;
+  height: 38mm;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .print-calendar-sheet .pdf-day:last-child {
@@ -207,7 +209,7 @@ button:disabled {
 }
 
 .print-calendar-sheet .has-empty-calendar .pdf-day {
-  height: 130px;
+  height: 45mm;
 }
 
 .print-calendar-sheet .pdf-day-current {
@@ -223,9 +225,9 @@ button:disabled {
 .print-calendar-sheet .pdf-day-number {
   display: block;
   font-family: var(--font-josefin), var(--font-inter), sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .print-calendar-sheet .pdf-day-number-current {
@@ -237,25 +239,25 @@ button:disabled {
 }
 
 .print-calendar-sheet .pdf-task-list {
-  display: table;
+  display: block;
   width: 100%;
-  border-spacing: 0 3px;
 }
 
 .print-calendar-sheet .pdf-task {
   background: rgb(248, 250, 252);
   border: 1px solid rgb(226, 232, 240);
-  border-radius: 6px;
-  padding: 3px 5px;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
   display: block;
 }
 
 .print-calendar-sheet .pdf-task-title {
   margin: 0;
   font-family: var(--font-roboto), var(--font-inter), sans-serif;
-  font-size: 10px;
+  font-size: 8.5px;
   font-weight: 900;
-  line-height: 1.15;
+  line-height: 1.1;
   color: rgb(2, 6, 23);
   white-space: nowrap;
   overflow: hidden;
@@ -263,20 +265,20 @@ button:disabled {
 }
 
 .print-calendar-sheet .pdf-task-meta {
-  margin-top: 2px;
+  margin-top: 1px;
   display: block;
   font-family: var(--font-roboto), var(--font-inter), sans-serif;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 700;
   color: rgb(71, 85, 105);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .print-calendar-sheet .pdf-assignee {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  margin-right: 4px;
+  gap: 2px;
+  margin-right: 3px;
 }
 
 .print-calendar-sheet .pdf-assignee-name {
@@ -287,8 +289,8 @@ button:disabled {
 }
 
 .print-calendar-sheet .pdf-swatch {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -296,7 +298,7 @@ button:disabled {
 .print-calendar-sheet .pdf-assignee-fallback {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
 }
 
 .print-calendar-sheet .pdf-swatch-fallback {
@@ -308,10 +310,10 @@ button:disabled {
   border-top: 1px solid rgb(203, 213, 225);
   text-align: center;
   font-family: var(--font-roboto), var(--font-inter), sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: rgb(71, 85, 105);
-  padding: 8px;
+  padding: 6px;
   margin: 0;
 }
 
@@ -327,8 +329,8 @@ button:disabled {
 }
 
 @media print {
-  body,
-  html {
+  html,
+  body {
     background: rgb(255, 255, 255) !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -344,26 +346,40 @@ button:disabled {
   }
 
   .print-calendar-sheet {
-    position: absolute;
+    position: fixed;
     inset: 0;
     margin: 0;
     padding: 6mm;
-    width: 100%;
+    width: calc(100% - 12mm);
+    height: calc(100% - 12mm);
     max-width: none;
     border: 0;
     border-radius: 0;
     box-shadow: none;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .print-calendar-sheet .print-calendar-title {
+    flex: 0 0 auto;
   }
 
   .print-calendar-sheet .pdf-grid {
+    flex: 1 1 auto;
     width: 100%;
+    height: 100%;
   }
 
   .print-calendar-sheet .pdf-day {
-    height: calc((100vh - 30mm) / 6);
+    height: auto;
   }
 
-  .print-calendar-sheet .has-empty-calendar .pdf-day {
-    height: calc((100vh - 30mm) / 5);
+  .print-calendar-sheet .pdf-task-list {
+    overflow: hidden;
+  }
+
+  .print-calendar-sheet .pdf-empty {
+    flex: 0 0 auto;
   }
 }

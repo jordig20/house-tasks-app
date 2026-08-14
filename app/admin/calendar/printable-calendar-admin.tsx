@@ -83,6 +83,13 @@ export function PrintableCalendarAdmin() {
         size: A4 landscape;
         margin: 6mm;
       }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: rgb(255, 255, 255) !important;
+        }
+      }
     `,
   });
 
