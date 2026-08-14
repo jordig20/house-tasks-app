@@ -13,12 +13,11 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "googleapis": "^173.0.0",
-    "html2canvas-pro": "^1.5.11",
-    "jspdf": "^4.2.1",
     "next": "latest",
     "nodemailer": "^9.0.3",
     "react": "latest",
     "react-dom": "latest",
+    "react-to-print": "^3.3.0",
     "server-only": "^0.0.1"
   },
   "devDependencies": {

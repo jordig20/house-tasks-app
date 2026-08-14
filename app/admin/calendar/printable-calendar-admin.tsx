@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas-pro";
+import { useRef, useState, type FormEvent } from "react";
+import { useReactToPrint } from "react-to-print";
 import { getLoggedInUser, getUserRequestHeaders } from "@/lib/auth";
 import { getBanffDateKey } from "@/lib/banff-time";
 import {
@@ -68,7 +67,6 @@ export function PrintableCalendarAdmin() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [isRenderingPdf, setIsRenderingPdf] = useState(false);
   const printableRef = useRef<HTMLDivElement>(null);
   const days = buildPrintableCalendar(monthStart, tasks);
   const weekCount = days.length / 7;
@@ -77,15 +75,16 @@ export function PrintableCalendarAdmin() {
   );
   const usersById = new Map(users.map((user) => [user.id, user]));
 
-  useEffect(() => {
-    const printable = printableRef.current;
-    if (!printable) {
-      return;
-    }
-    const inlineWidth = `${Math.max(58, weekCount * 9)}rem`;
-    printable.style.setProperty("--pdf-weeks", String(weekCount));
-    printable.style.setProperty("--pdf-width", inlineWidth);
-  }, [weekCount]);
+  const handlePrint = useReactToPrint({
+    contentRef: printableRef,
+    documentTitle: `540a-calendar-${monthStart}`,
+    pageStyle: `
+      @page {
+        size: A4 landscape;
+        margin: 6mm;
+      }
+    `,
+  });
 
   async function loadMonth(nextMonth = monthStart) {
     const currentUser = getLoggedInUser();
@@ -146,49 +145,6 @@ export function PrintableCalendarAdmin() {
     }
   }
 
-  async function downloadPdf() {
-    if (!hasLoaded || !printableRef.current) {
-      return;
-    }
-
-    setIsRenderingPdf(true);
-
-    try {
-      const canvas = await html2canvas(printableRef.current, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        logging: false,
-        windowWidth: printableRef.current.scrollWidth,
-        windowHeight: printableRef.current.scrollHeight,
-      });
-
-      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 6;
-      const targetWidth = pageWidth - margin * 2;
-      const targetHeight = pageHeight - margin * 2;
-      const ratio = Math.min(targetWidth / canvas.width, targetHeight / canvas.height);
-      const renderWidth = canvas.width * ratio;
-      const renderHeight = canvas.height * ratio;
-      const offsetX = (pageWidth - renderWidth) / 2;
-      const offsetY = (pageHeight - renderHeight) / 2;
-      const imageData = canvas.toDataURL("image/png");
-
-      doc.addImage(imageData, "PNG", offsetX, offsetY, renderWidth, renderHeight);
-      doc.save(`540a-calendar-${monthStart}.pdf`);
-    } catch (renderError) {
-      setError(
-        renderError instanceof Error
-          ? renderError.message
-          : "Printable calendar could not be exported.",
-      );
-    } finally {
-      setIsRenderingPdf(false);
-    }
-  }
-
   return (
     <div className="print-page space-y-5">
       <section className="surface-card print-hidden p-5 sm:p-6">
@@ -203,20 +159,12 @@ export function PrintableCalendarAdmin() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
-              className="min-h-11 rounded-full border border-slate-200 bg-white px-5 py-3 font-ui text-sm font-black text-slate-700 disabled:opacity-50"
+              className="action-primary min-h-11 rounded-full px-5 py-3 font-ui text-sm font-black disabled:opacity-50"
               disabled={!hasLoaded || isLoading}
               type="button"
-              onClick={() => window.print()}
+              onClick={() => handlePrint()}
             >
-              Print preview
-            </button>
-            <button
-              className="action-primary min-h-11 rounded-full px-5 py-3 font-ui text-sm font-black disabled:opacity-50"
-              disabled={!hasLoaded || isLoading || isRenderingPdf}
-              type="button"
-              onClick={downloadPdf}
-            >
-              {isRenderingPdf ? "Rendering PDF..." : "Download PDF"}
+              Print A4 calendar
             </button>
           </div>
         </div>

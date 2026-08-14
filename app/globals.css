@@ -320,38 +320,39 @@ button:disabled {
   --pdf-width: 58rem;
 }
 
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 6mm;
-  }
-
-  body {
-    background: rgb(255, 255, 255) !important;
-  }
-
-  body:has(.print-page) main {
-    min-height: 0;
-    padding: 0;
-  }
-
-  body:has(.print-page) main > div {
-    max-width: none;
-  }
-
-  .print-hidden {
-    display: none !important;
-  }
-
+@media screen {
   .print-page {
-    margin: 0;
+    padding: 12px;
+  }
+}
+
+@media print {
+  body,
+  html {
+    background: rgb(255, 255, 255) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-calendar-sheet,
+  .print-calendar-sheet * {
+    visibility: visible;
   }
 
   .print-calendar-sheet {
-    box-shadow: none;
-    border: 0;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 6mm;
     width: 100%;
+    max-width: none;
+    border: 0;
     border-radius: 0;
+    box-shadow: none;
   }
 
   .print-calendar-sheet .pdf-grid {
@@ -359,10 +360,10 @@ button:disabled {
   }
 
   .print-calendar-sheet .pdf-day {
-    height: calc((183mm - 12mm) / 6);
+    height: calc((100vh - 30mm) / 6);
   }
 
   .print-calendar-sheet .has-empty-calendar .pdf-day {
-    height: calc((163mm - 12mm) / 6);
+    height: calc((100vh - 30mm) / 5);
   }
 }
