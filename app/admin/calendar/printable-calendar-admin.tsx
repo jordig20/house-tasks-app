@@ -143,17 +143,27 @@ export function PrintableCalendarAdmin() {
               Prepare a calendar for the house
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Choose a month, load the current Google Calendar tasks, then download an A4 landscape PDF with each assignee&apos;s color.
+              Choose a month, load the current Google Calendar tasks, then print the styled preview or download an A4 landscape PDF with each assignee&apos;s color.
             </p>
           </div>
-          <button
-            className="action-primary min-h-11 rounded-full px-5 py-3 font-ui text-sm font-black disabled:opacity-50"
-            disabled={!hasLoaded || isLoading}
-            type="button"
-            onClick={downloadPdf}
-          >
-            Download PDF
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="min-h-11 rounded-full border border-slate-200 bg-white px-5 py-3 font-ui text-sm font-black text-slate-700 disabled:opacity-50"
+              disabled={!hasLoaded || isLoading}
+              type="button"
+              onClick={() => window.print()}
+            >
+              Print preview
+            </button>
+            <button
+              className="action-primary min-h-11 rounded-full px-5 py-3 font-ui text-sm font-black disabled:opacity-50"
+              disabled={!hasLoaded || isLoading}
+              type="button"
+              onClick={downloadPdf}
+            >
+              Download PDF
+            </button>
+          </div>
         </div>
 
         <form className="mt-5 grid gap-3 md:grid-cols-[auto_minmax(11rem,1fr)_minmax(11rem,1fr)_auto]" onSubmit={handleSubmit}>
