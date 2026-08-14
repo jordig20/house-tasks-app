@@ -37,7 +37,7 @@ export function AppShell({
     <main className="min-h-screen bg-transparent px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-slate-950 sm:px-6 sm:pb-10">
       <AppHeader user={user} onUserChange={setUser} />
       <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
-        <header className="mb-6 pt-1 sm:mb-7 sm:pt-0">
+        <header className="print-hidden mb-6 pt-1 sm:mb-7 sm:pt-0">
           <p className="font-ui text-sm font-black uppercase tracking-[0.2em] text-cyan-700">
             {eyebrow}
           </p>
@@ -76,7 +76,7 @@ export function AppShell({
           children
         )}
 
-        <footer className="mt-10 flex items-center justify-center gap-1.5 text-center font-ui text-xs font-bold text-slate-400">
+        <footer className="print-hidden mt-10 flex items-center justify-center gap-1.5 text-center font-ui text-xs font-bold text-slate-400">
           <span>Developed by</span>
           <a
             href="https://jordi.is-a.dev"

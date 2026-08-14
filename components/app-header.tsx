@@ -23,6 +23,7 @@ const adminNavItems = [
   { href: "/today", label: "Today" },
   { href: "/week", label: "Week" },
   { href: "/month", label: "Month" },
+  { href: "/admin/calendar", label: "Print" },
   { href: "/admin/users", label: "Users" },
 ];
 
@@ -120,7 +121,7 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 -mx-4 mb-5 border-b border-slate-200/80 bg-[color:rgba(244,247,245,0.94)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0 sm:py-3">
+    <header className="print-hidden sticky top-0 z-10 -mx-4 mb-5 border-b border-slate-200/80 bg-[color:rgba(244,247,245,0.94)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0 sm:py-3">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
         <div className="flex items-center gap-6">
           <BrandLogo compact />

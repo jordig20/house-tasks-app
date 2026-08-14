@@ -15,6 +15,7 @@ const adminNavItems = [
   { href: "/today", label: "Today" },
   { href: "/week", label: "Week" },
   { href: "/month", label: "Month" },
+  { href: "/admin/calendar", label: "Print" },
   { href: "/admin/users", label: "Users" },
 ];
 
@@ -22,11 +23,11 @@ export function BottomNav({ user }: { user: LoggedInUser | null }) {
   const pathname = usePathname();
   const navItems = user?.role === "admin" ? adminNavItems : memberNavItems;
   const gridCols =
-    navItems.length === 4 ? "grid-cols-4" : "grid-cols-3";
+    navItems.length === 5 ? "grid-cols-5" : "grid-cols-3";
   const userColor = user ? getUserColorClass(user.color, user.role) : "";
 
   return (
-    <nav aria-label="Primary navigation" className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_28px_rgba(15,23,42,0.1)] sm:hidden">
+    <nav aria-label="Primary navigation" className="print-hidden fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_28px_rgba(15,23,42,0.1)] sm:hidden">
       <div className={`mx-auto grid max-w-md gap-1 ${gridCols}`}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;

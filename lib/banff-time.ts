@@ -116,13 +116,32 @@ export function getBanffWeekRange(now = new Date()) {
 
 export function getBanffMonthRange(now = new Date()) {
   const today = getPartsInBanff(now);
+  return getBanffMonthRangeFromKey(
+    `${today.year}-${String(today.month).padStart(2, "0")}-01`,
+  );
+}
+
+export function getBanffMonthRangeFromKey(monthStartKey: string) {
+  const match = /^(\d{4})-(\d{2})-01$/.exec(monthStartKey);
+
+  if (!match) {
+    throw new Error("Month must use YYYY-MM-01 format.");
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+
+  if (month < 1 || month > 12) {
+    throw new Error("Month must use YYYY-MM-01 format.");
+  }
+
   const monthStart: DateParts = {
-    year: today.year,
-    month: today.month,
+    year,
+    month,
     day: 1,
   };
   const nextMonthStartDate = new Date(
-    Date.UTC(today.year, today.month, 1),
+    Date.UTC(year, month, 1),
   );
   const nextMonthStart: DateParts = {
     year: nextMonthStartDate.getUTCFullYear(),

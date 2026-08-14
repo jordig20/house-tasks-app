@@ -92,3 +92,85 @@ button:disabled {
     animation-iteration-count: 1 !important;
   }
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+
+  body:has(.print-page) main {
+    min-height: 0;
+    padding: 0;
+  }
+
+  body:has(.print-page) main > div {
+    max-width: none;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-page {
+    margin: 0;
+  }
+
+  .print-calendar-sheet {
+    height: 190mm;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: none;
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-calendar-title {
+    height: 16mm;
+    padding: 2mm 3mm;
+  }
+
+  .print-calendar-grid {
+    display: grid;
+    min-width: 0;
+    height: 174mm;
+    grid-template-rows: 8mm repeat(var(--calendar-weeks), minmax(0, 1fr));
+  }
+
+  .has-empty-calendar .print-calendar-grid {
+    height: 166mm;
+  }
+
+  .calendar-row {
+    min-height: 0;
+  }
+
+  .calendar-weekday {
+    padding: 2mm 1mm;
+    font-size: 7pt;
+  }
+
+  .calendar-day {
+    min-height: 0;
+    padding: 1.4mm;
+    break-inside: avoid;
+  }
+
+  .calendar-task {
+    padding: 0.8mm 1mm;
+    break-inside: avoid;
+  }
+
+  .calendar-empty {
+    height: 8mm;
+    overflow: hidden;
+    padding: 2mm 3mm;
+    line-height: 4mm;
+  }
+
+}
