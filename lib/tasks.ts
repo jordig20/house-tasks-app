@@ -166,13 +166,13 @@ export function groupTasksByDay(tasks: CleaningTask[]) {
       return groups;
     },
     {
+      Sunday: [],
       Monday: [],
       Tuesday: [],
       Wednesday: [],
       Thursday: [],
       Friday: [],
       Saturday: [],
-      Sunday: [],
     },
   );
 }

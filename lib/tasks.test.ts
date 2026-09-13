@@ -3,6 +3,7 @@ import {
   getTaskCompletionKey,
   getTaskCompletionMode,
   getTaskDateRangeLabel,
+  groupTasksByDay,
   getUserIdFromName,
   isMultiDayTask,
   parseCalendarTaskTitle,
@@ -90,5 +91,19 @@ describe("multi-day task labels", () => {
 
   it("keeps single-day labels unchanged", () => {
     expect(getTaskDateRangeLabel(task())).toBe("Wednesday, Jul 15");
+  });
+});
+
+describe("weekly task ordering", () => {
+  it("orders the week from Sunday through Saturday", () => {
+    expect(Object.keys(groupTasksByDay([]))).toEqual([
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ]);
   });
 });
