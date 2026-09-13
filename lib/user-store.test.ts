@@ -94,4 +94,20 @@ describe("user storage mapping", () => {
     });
     expect(loggedInUser).not.toHaveProperty("pin");
   });
+
+  it("only deactivates active members and leaves task history tables untouched", async () => {
+    const { deactivateStoredUser } = await import("./user-store");
+
+    await deactivateStoredUser("member-a");
+
+    const statements = sql.mock.calls.map(([strings]) => strings.join(" "));
+    const deactivation = statements.find((statement) => statement.includes("update house_users"));
+
+    expect(deactivation).toContain("set is_active = false");
+    expect(deactivation).toContain("role = 'member'");
+    expect(deactivation).toContain("is_active = true");
+    expect(statements.join(" ")).not.toContain("delete from calendar_tasks");
+    expect(statements.join(" ")).not.toContain("delete from task_statuses");
+    expect(statements.join(" ")).not.toContain("delete from task_email_notifications");
+  });
 });

@@ -152,3 +152,20 @@ export async function updateStoredUserEmailPreferences({
 
   return getStoredHouseUsers();
 }
+
+export async function deactivateStoredUser(userId: string) {
+  if (!sql) {
+    throw new Error("DATABASE_URL is not configured.");
+  }
+
+  await ensureCalendarTables();
+  await sql`
+    update house_users
+    set is_active = false, updated_at = now()
+    where id = ${userId}
+      and role = 'member'
+      and is_active = true
+  `;
+
+  return getStoredHouseUsers();
+}

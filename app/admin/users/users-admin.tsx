@@ -180,6 +180,39 @@ export function UsersAdmin() {
     await loadAdminUsers(proof);
   }
 
+  async function removeUser(user: AdminUser) {
+    const currentUser = getLoggedInUser();
+    const proof = actorPin || window.prompt("Enter your admin PIN to remove this user.");
+
+    if (!proof) {
+      throw new Error("Admin PIN is required to remove a user.");
+    }
+
+    if (!hasLoadedAdminUsers) {
+      throw new Error("Load email settings with the admin PIN before removing users.");
+    }
+
+    const response = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", ...getUserRequestHeaders(currentUser) },
+      body: JSON.stringify({ userId: user.id, actorPin: proof }),
+    });
+    const result = (await response.json()) as UsersResponse;
+
+    if (!response.ok || !result.users) {
+      throw new Error(result.message ?? "User removal failed.");
+    }
+
+    setUsers(result.users);
+    setPreviewUserId((currentUserId) =>
+      currentUserId === user.id ? result.users?.[0]?.id ?? "" : currentUserId,
+    );
+    if (previewUserId === user.id) {
+      setPreview(null);
+    }
+    setMessage(`${user.name} was removed from the active house roster. Historical calendar records were retained.`);
+  }
+
   async function resetPin(user: AdminUser) {
     await savePin(user.id, defaultMemberPin);
     setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
@@ -354,6 +387,7 @@ export function UsersAdmin() {
           <AdminUserCard
             key={`${user.id}-${user.email ?? ""}-${user.emailRemindersEnabled ?? ""}-${user.eveningRemindersEnabled ?? ""}`}
             onEmailSettingsSave={saveEmailSettings}
+            onRemoveUser={removeUser}
             onResetPin={resetPin}
             onUsersChange={(nextUsers) => {
               setUsers((currentUsers) =>
@@ -365,6 +399,7 @@ export function UsersAdmin() {
               setMessage(`Color updated for ${user.name}.`);
             }}
             canEditEmailSettings={hasLoadedAdminUsers}
+            canRemoveUser={hasLoadedAdminUsers}
             user={user}
           />
         ))}
@@ -377,9 +412,11 @@ export function UsersAdmin() {
 function AdminUserCard({
   user,
   onEmailSettingsSave,
+  onRemoveUser,
   onResetPin,
   onUsersChange,
   canEditEmailSettings,
+  canRemoveUser,
 }: {
   user: AdminUser;
   onEmailSettingsSave: (settings: {
@@ -388,9 +425,11 @@ function AdminUserCard({
     emailRemindersEnabled: boolean;
     eveningRemindersEnabled: boolean;
   }) => Promise<void>;
+  onRemoveUser: (user: AdminUser) => Promise<void>;
   onResetPin: (user: AdminUser) => Promise<void>;
   onUsersChange: (users: Pick<HouseUser, "id" | "name" | "role" | "color">[]) => void;
   canEditEmailSettings: boolean;
+  canRemoveUser: boolean;
 }) {
   const [email, setEmail] = useState(user.email ?? "");
   const [emailRemindersEnabled, setEmailRemindersEnabled] = useState(user.emailRemindersEnabled ?? false);
@@ -449,6 +488,27 @@ function AdminUserCard({
       setMessage(`${user.name}'s PIN was reset to ${defaultMemberPin}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "PIN reset failed.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleRemoveUser() {
+    const confirmed = window.confirm(
+      `Remove ${user.name} from the active house roster and login access? Historical calendar records will be retained.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage("");
+
+    try {
+      await onRemoveUser(user);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "User removal failed.");
     } finally {
       setIsSaving(false);
     }
@@ -520,6 +580,23 @@ function AdminUserCard({
       <button disabled={isSaving} onClick={handleResetPin} className="mt-4 w-full rounded-full bg-slate-950 px-4 py-3 font-ui font-black text-white disabled:cursor-not-allowed disabled:opacity-50">
         Reset PIN to {defaultMemberPin}
       </button>
+      {canRemoveUser && user.role === "member" ? (
+        <div className="mt-4 rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-950">
+          <p className="font-ui text-xs font-black uppercase tracking-wide text-rose-700">Remove access</p>
+          <p className="mt-2 leading-6">
+            Removes this person from the active house roster and login access. Historical calendar records are retained.
+          </p>
+          <button
+            aria-label={`Remove ${user.name} from active roster`}
+            className="mt-3 w-full rounded-full bg-rose-700 px-4 py-3 font-ui font-black text-white hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-700 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSaving}
+            type="button"
+            onClick={handleRemoveUser}
+          >
+            Remove from active roster
+          </button>
+        </div>
+      ) : null}
       {message ? <p className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-600">{message}</p> : null}
     </article>
   );
