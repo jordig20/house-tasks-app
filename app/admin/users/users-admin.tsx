@@ -188,10 +188,6 @@ export function UsersAdmin() {
       throw new Error("Admin PIN is required to remove a user.");
     }
 
-    if (!hasLoadedAdminUsers) {
-      throw new Error("Load email settings with the admin PIN before removing users.");
-    }
-
     const response = await fetch("/api/admin/users", {
       method: "DELETE",
       headers: { "Content-Type": "application/json", ...getUserRequestHeaders(currentUser) },
@@ -399,7 +395,7 @@ export function UsersAdmin() {
               setMessage(`Color updated for ${user.name}.`);
             }}
             canEditEmailSettings={hasLoadedAdminUsers}
-            canRemoveUser={hasLoadedAdminUsers}
+            canRemoveUser
             user={user}
           />
         ))}
