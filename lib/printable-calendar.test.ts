@@ -3,6 +3,7 @@ import type { CleaningTask } from "@/lib/tasks";
 import {
   buildPrintableCalendar,
   getMonthStartKey,
+  getPrintableTaskAssigneeColorClass,
   shiftMonth,
 } from "@/lib/printable-calendar";
 
@@ -80,5 +81,41 @@ describe("printable monthly calendar", () => {
     expect(shiftMonth("2026-01-01", -1)).toBe("2025-12-01");
     expect(shiftMonth("2026-12-01", 1)).toBe("2027-01-01");
     expect(getMonthStartKey("2026-08-14")).toBe("2026-08-01");
+  });
+
+  it("uses the first configured assignee color for multi-assignee tasks", () => {
+    const multiAssigneeTask = task({ assignedUserIds: ["jordi", "ana", "sam"] });
+    const usersById = new Map([
+      ["jordi", { role: "member" as const }],
+      ["ana", { color: "green", role: "member" as const }],
+      ["sam", { color: "red", role: "member" as const }],
+    ]);
+
+    expect(getPrintableTaskAssigneeColorClass(multiAssigneeTask, usersById)).toBe(
+      "bg-material-green-100 text-material-green-700 ring-material-green-500/30",
+    );
+  });
+
+  it("uses the blue fallback when no multi-assignee color is configured", () => {
+    const multiAssigneeTask = task({ assignedUserIds: ["jordi", "ana"] });
+    const usersById = new Map([
+      ["jordi", { role: "admin" as const }],
+      ["ana", { role: "member" as const }],
+    ]);
+
+    expect(getPrintableTaskAssigneeColorClass(multiAssigneeTask, usersById)).toBe(
+      "bg-material-blue-100 text-material-blue-700 ring-material-blue-500/30",
+    );
+  });
+
+  it("keeps the individual color behavior for single-assignee tasks", () => {
+    const singleAssigneeTask = task({ assignedUserIds: ["jordi"] });
+    const usersById = new Map([
+      ["jordi", { color: "red", role: "member" as const }],
+    ]);
+
+    expect(getPrintableTaskAssigneeColorClass(singleAssigneeTask, usersById)).toBe(
+      "bg-material-red-100 text-material-red-700 ring-material-red-500/30",
+    );
   });
 });

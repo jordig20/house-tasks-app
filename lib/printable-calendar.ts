@@ -1,5 +1,6 @@
 import { getBanffDateKey } from "@/lib/banff-time";
-import type { CleaningTask } from "@/lib/tasks";
+import type { CleaningTask, HouseUser } from "@/lib/tasks";
+import { getUserColorClass, userColorOptions } from "@/lib/users";
 
 export type PrintableCalendarDay = {
   dateKey: string;
@@ -7,6 +8,8 @@ export type PrintableCalendarDay = {
   isCurrentMonth: boolean;
   tasks: CleaningTask[];
 };
+
+type PrintableCalendarUser = Pick<HouseUser, "color" | "role">;
 
 const monthStartPattern = /^(\d{4})-(\d{2})-01$/;
 
@@ -54,6 +57,24 @@ export function shiftMonth(monthStart: string, amount: number) {
   const { year, month } = parseMonthStart(monthStart);
   const date = new Date(Date.UTC(year, month - 1 + amount, 1));
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
+export function getPrintableTaskAssigneeColorClass(
+  task: Pick<CleaningTask, "assignedUserIds">,
+  usersById: ReadonlyMap<string, PrintableCalendarUser>,
+) {
+  const assignedUsers = task.assignedUserIds.map((userId) => usersById.get(userId));
+
+  if (task.assignedUserIds.length > 1) {
+    const configuredColor = assignedUsers
+      .map((user) => user?.color)
+      .find((color) => userColorOptions.some((option) => option.id === color));
+
+    return getUserColorClass(configuredColor);
+  }
+
+  const user = assignedUsers[0];
+  return getUserColorClass(user?.color, user?.role);
 }
 
 export function buildPrintableCalendar(

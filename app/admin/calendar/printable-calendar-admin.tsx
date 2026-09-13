@@ -7,10 +7,10 @@ import { getBanffDateKey } from "@/lib/banff-time";
 import {
   buildPrintableCalendar,
   getMonthStartKey,
+  getPrintableTaskAssigneeColorClass,
   shiftMonth,
 } from "@/lib/printable-calendar";
 import type { CleaningTask, HouseUser } from "@/lib/tasks";
-import { getUserColorClass } from "@/lib/users";
 
 type PrintableUser = Pick<HouseUser, "id" | "name" | "role" | "color">;
 
@@ -317,41 +317,45 @@ export function PrintableCalendarAdmin() {
                       {day.dayNumber}
                     </time>
                     <div className="pdf-task-list">
-                      {day.tasks.map((task) => (
-                        <div
-                          key={`${day.dateKey}-${task.id}`}
-                          className="pdf-task"
-                          title={`${task.title} · ${findAssigneeLabel(task, usersById)}`}
-                        >
-                          <p className="pdf-task-title">
-                            {task.title}
-                          </p>
-                          <div className="pdf-task-meta">
-                            {task.assignedUserIds.length > 0 ? task.assignedUserIds.map((userId, index) => {
-                              const user = usersById.get(userId);
-                              return (
-                                <span
-                                  key={userId}
-                                  className={`pdf-assignee ${user ? getUserColorClass(user.color, user.role) : "pdf-assignee-fallback"}`}
-                                >
+                      {day.tasks.map((task) => {
+                        const assigneeColorClass = getPrintableTaskAssigneeColorClass(task, usersById);
+
+                        return (
+                          <div
+                            key={`${day.dateKey}-${task.id}`}
+                            className="pdf-task"
+                            title={`${task.title} · ${findAssigneeLabel(task, usersById)}`}
+                          >
+                            <p className="pdf-task-title">
+                              {task.title}
+                            </p>
+                            <div className="pdf-task-meta">
+                              {task.assignedUserIds.length > 0 ? task.assignedUserIds.map((userId, index) => {
+                                const user = usersById.get(userId);
+                                return (
                                   <span
-                                    aria-hidden="true"
-                                    className={`pdf-swatch ${user ? getUserColorClass(user.color, user.role) : "pdf-swatch-fallback"}`}
-                                  />
-                                  <span className="pdf-assignee-name">
-                                    {user?.name ?? task.assignedTo[index] ?? "Assigned"}
+                                    key={userId}
+                                    className={`pdf-assignee ${user ? assigneeColorClass : "pdf-assignee-fallback"}`}
+                                  >
+                                    <span
+                                      aria-hidden="true"
+                                      className={`pdf-swatch ${user ? assigneeColorClass : "pdf-swatch-fallback"}`}
+                                    />
+                                    <span className="pdf-assignee-name">
+                                      {user?.name ?? task.assignedTo[index] ?? "Assigned"}
+                                    </span>
                                   </span>
+                                );
+                              }) : (
+                                <span className="pdf-assignee-fallback">
+                                  <span aria-hidden="true" className="pdf-swatch-fallback pdf-swatch" />
+                                  <span className="pdf-assignee-name">Unassigned</span>
                                 </span>
-                              );
-                            }) : (
-                              <span className="pdf-assignee-fallback">
-                                <span aria-hidden="true" className="pdf-swatch-fallback pdf-swatch" />
-                                <span className="pdf-assignee-name">Unassigned</span>
-                              </span>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </td>
                 ))}
